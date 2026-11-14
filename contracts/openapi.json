@@ -1,0 +1,906 @@
+{
+  "components": {
+    "schemas": {
+      "Acquisition": {
+        "description": "Provenance for one date: which radar product the layers for that date came from.",
+        "properties": {
+          "band": {
+            "enum": [
+              "L",
+              "S",
+              "C"
+            ],
+            "title": "Band",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "granule_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Source product ID; null for demo data.",
+            "title": "Granule Id"
+          },
+          "polarizations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Polarizations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "granule_id",
+          "band",
+          "polarizations"
+        ],
+        "title": "Acquisition",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "additionalProperties": true,
+            "title": "Details",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "HealthStatus": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthStatus",
+        "type": "object"
+      },
+      "PointOfInterest": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "note": {
+            "default": "",
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "lon",
+          "lat"
+        ],
+        "title": "PointOfInterest",
+        "type": "object"
+      },
+      "PointTimeseries": {
+        "properties": {
+          "lat": {
+            "title": "Lat",
+            "type": "number"
+          },
+          "lon": {
+            "title": "Lon",
+            "type": "number"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/TimeseriesEntry"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "site_id": {
+            "title": "Site Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "site_id",
+          "lon",
+          "lat",
+          "series"
+        ],
+        "title": "PointTimeseries",
+        "type": "object"
+      },
+      "SiteDetail": {
+        "properties": {
+          "acquisitions": {
+            "items": {
+              "$ref": "#/components/schemas/Acquisition"
+            },
+            "title": "Acquisitions",
+            "type": "array"
+          },
+          "attribution": {
+            "title": "Attribution",
+            "type": "string"
+          },
+          "center": {
+            "description": "[lon, lat]",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Center",
+            "type": "array"
+          },
+          "change_type": {
+            "enum": [
+              "water",
+              "crops",
+              "forest",
+              "ice",
+              "deformation"
+            ],
+            "title": "Change Type",
+            "type": "string"
+          },
+          "corners": {
+            "description": "Image corners as [lon, lat]: top-left, top-right, bottom-right, bottom-left. Every layer and date of the site shares these corners.",
+            "maxItems": 4,
+            "minItems": 4,
+            "prefixItems": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "title": "Corners",
+            "type": "array"
+          },
+          "dates": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "readOnly": true,
+            "title": "Dates",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "layers": {
+            "items": {
+              "enum": [
+                "hh",
+                "hv",
+                "rgb",
+                "water"
+              ],
+              "type": "string"
+            },
+            "title": "Layers",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "points_of_interest": {
+            "items": {
+              "$ref": "#/components/schemas/PointOfInterest"
+            },
+            "title": "Points Of Interest",
+            "type": "array"
+          },
+          "source": {
+            "description": "'demo' is synthetic data; the UI must label it.",
+            "enum": [
+              "demo",
+              "nisar"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "center",
+          "change_type",
+          "source",
+          "corners",
+          "layers",
+          "acquisitions",
+          "attribution",
+          "dates"
+        ],
+        "title": "SiteDetail",
+        "type": "object"
+      },
+      "SiteStats": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/StatsEntry"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "site_id": {
+            "title": "Site Id",
+            "type": "string"
+          },
+          "water_threshold_db": {
+            "description": "HH below this counts as open water.",
+            "title": "Water Threshold Db",
+            "type": "number"
+          }
+        },
+        "required": [
+          "site_id",
+          "water_threshold_db",
+          "series"
+        ],
+        "title": "SiteStats",
+        "type": "object"
+      },
+      "SiteSummary": {
+        "properties": {
+          "center": {
+            "description": "[lon, lat]",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "title": "Center",
+            "type": "array"
+          },
+          "change_type": {
+            "enum": [
+              "water",
+              "crops",
+              "forest",
+              "ice",
+              "deformation"
+            ],
+            "title": "Change Type",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "description": "'demo' is synthetic data; the UI must label it.",
+            "enum": [
+              "demo",
+              "nisar"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "center",
+          "change_type",
+          "source"
+        ],
+        "title": "SiteSummary",
+        "type": "object"
+      },
+      "StatsEntry": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "mean_hh_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when the date has no valid pixels.",
+            "title": "Mean Hh Db"
+          },
+          "mean_hv_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Hv Db"
+          },
+          "water_km2": {
+            "title": "Water Km2",
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "water_km2",
+          "mean_hh_db",
+          "mean_hv_db"
+        ],
+        "title": "StatsEntry",
+        "type": "object"
+      },
+      "TimeseriesEntry": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "hh_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null when the point has no data on this date.",
+            "title": "Hh Db"
+          },
+          "hv_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hv Db"
+          }
+        },
+        "required": [
+          "date",
+          "hh_db",
+          "hv_db"
+        ],
+        "title": "TimeseriesEntry",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only API over NISAR radar layers prepared offline by the pipeline.",
+    "title": "Data Nebula API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "description": "Returns ok when the API process is up. Used by the hosting platform.",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/sites": {
+      "get": {
+        "description": "Every study area the pipeline has prepared. Empty until a site is built.",
+        "operationId": "list_sites_api_v1_sites_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SiteSummary"
+                  },
+                  "title": "Response List Sites Api V1 Sites Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List prepared sites",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}": {
+      "get": {
+        "description": "Corners, dates, layers, provenance and points of interest for one site.",
+        "operationId": "get_site_api_v1_sites__site_id__get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Get one site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/change.png": {
+      "get": {
+        "description": "Red: surface got darker to radar (e.g. new water, harvest). Blue: got brighter (e.g. water retreat, crop growth). Unchanged pixels are transparent.",
+        "operationId": "get_change_api_v1_sites__site_id__change_png_get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Earlier date",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "description": "Earlier date",
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Later date",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "description": "Later date",
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "polarization",
+            "required": false,
+            "schema": {
+              "default": "hh",
+              "enum": [
+                "hh",
+                "hv"
+              ],
+              "title": "Polarization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {}
+            },
+            "description": "Transparent PNG over the site corners."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Change between two dates",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/layers/{layer}/{date}.png": {
+      "get": {
+        "description": "hh/hv: grayscale backscatter \u00b7 rgb: HH/HV/ratio colour mix \u00b7 water: water mask.",
+        "operationId": "get_layer_api_v1_sites__site_id__layers__layer___date__png_get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "layer",
+            "required": true,
+            "schema": {
+              "enum": [
+                "hh",
+                "hv",
+                "rgb",
+                "water"
+              ],
+              "title": "Layer",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/png": {}
+            },
+            "description": "Transparent PNG over the site corners."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Layer image for one date",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/stats": {
+      "get": {
+        "description": "Open-water area and mean backscatter for each acquisition date.",
+        "operationId": "get_stats_api_v1_sites__site_id__stats_get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Site statistics per date",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/timeseries": {
+      "get": {
+        "description": "HH and HV in dB at a clicked point (3x3 pixel average) for every date.",
+        "operationId": "get_timeseries_api_v1_sites__site_id__timeseries_get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lon",
+            "required": true,
+            "schema": {
+              "maximum": 180,
+              "minimum": -180,
+              "title": "Lon",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "required": true,
+            "schema": {
+              "maximum": 85,
+              "minimum": -85,
+              "title": "Lat",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PointTimeseries"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Backscatter over time at a point",
+        "tags": [
+          "sites"
+        ]
+      }
+    }
+  }
+}

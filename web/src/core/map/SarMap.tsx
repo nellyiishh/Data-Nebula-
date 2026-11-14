@@ -91,10 +91,13 @@ const BASEMAP: MapOptions['style'] = {
   sources: {
     base: {
       type: 'raster',
-      tiles: ['a', 'b', 'c'].map((s) => `https://${s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png`),
+      // Esri Dark Gray Canvas needs no key (CARTO's free tiles now return an "API KEY REQUIRED" watermark).
+      // Esri's URL order is {z}/{y}/{x}.
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
+      maxzoom: 16,
       attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+        'Basemap © <a href="https://www.esri.com/">Esri</a>, HERE, Garmin, © OpenStreetMap contributors',
     },
   },
   layers: [{ id: 'base', type: 'raster', source: 'base' }],

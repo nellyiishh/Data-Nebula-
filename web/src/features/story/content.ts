@@ -51,8 +51,8 @@ export const DATASETS: Dataset[] = [
   },
   {
     name: 'Basemap',
-    provider: '© OpenStreetMap contributors © CARTO',
-    url: 'https://carto.com/attributions',
+    provider: 'Esri, HERE, Garmin, © OpenStreetMap contributors',
+    url: 'https://www.esri.com/en-us/legal/terms/data-attributions',
     usedFor: 'Background map',
   },
 ]

@@ -59,8 +59,10 @@ Design system: "Dark Earth Intelligence" palette in `src/core/theme/tokens.css`,
 
 `src/core/api/client.ts` is the only file that builds URLs.
 
-- **`VITE_API_URL` empty (default)** → static files in `public/data/`. Right now **FAKE**, made by
-  `npm run fake-data` (`scripts/make-fake-data.mjs`).
+- **`VITE_API_URL` empty (default)** → static files at `/data`: real backend output from
+  `../data/web/` (written by `python -m pipeline.export_static`) first, then the **FAKE** files in
+  `public/data/` (`npm run fake-data`) for anything the backend has not exported. The
+  `siteData` plugin in `vite.config.ts` does this in dev and in `npm run build`.
 - **`VITE_API_URL=http://localhost:8000`** in `web/.env.local` → the FastAPI backend.
 
 Static layout = the backend contract (`contracts/openapi.json`) + an optional extension:

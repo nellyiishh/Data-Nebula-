@@ -1,0 +1,60 @@
+{
+  "site_id": "demo-reservoir",
+  "water_threshold_db": -18.0,
+  "series": [
+    {
+      "date": "2026-06-20",
+      "water_km2": 197.3852,
+      "mean_hh_db": -9.982,
+      "mean_hv_db": -16.807
+    },
+    {
+      "date": "2026-07-02",
+      "water_km2": 186.6359,
+      "mean_hh_db": -9.946,
+      "mean_hv_db": -16.808
+    },
+    {
+      "date": "2026-07-14",
+      "water_km2": 175.5089,
+      "mean_hh_db": -9.937,
+      "mean_hv_db": -16.779
+    },
+    {
+      "date": "2026-07-26",
+      "water_km2": 164.5752,
+      "mean_hh_db": -9.913,
+      "mean_hv_db": -16.756
+    },
+    {
+      "date": "2026-08-19",
+      "water_km2": 153.5801,
+      "mean_hh_db": -9.919,
+      "mean_hv_db": -16.845
+    },
+    {
+      "date": "2026-08-31",
+      "water_km2": 142.2862,
+      "mean_hh_db": -9.925,
+      "mean_hv_db": -16.925
+    },
+    {
+      "date": "2026-09-24",
+      "water_km2": 131.3525,
+      "mean_hh_db": -9.942,
+      "mean_hv_db": -17.02
+    },
+    {
+      "date": "2026-10-18",
+      "water_km2": 120.3223,
+      "mean_hh_db": -9.93,
+      "mean_hv_db": -16.998
+    },
+    {
+      "date": "2026-11-11",
+      "water_km2": 109.1425,
+      "mean_hh_db": -9.936,
+      "mean_hv_db": -17.096
+    }
+  ]
+}

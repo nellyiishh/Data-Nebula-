@@ -73,7 +73,8 @@ water story; this section replaces them where they disagree.
 ### Later: move from "local files" to "server backend"
 
 For now everything runs locally: the pipeline writes to `data/derived/`, and
-`export_static` copies the results into `web/public/data/` for the static web build.
+`export_static` writes the website data to `data/web/` (the future bucket layout), which the
+web dev server and build pick up at `/data`.
 **This is temporary.** The backend will be hosted on Google Cloud / Firebase. Then:
 
 - **Hosting:** run the FastAPI app on **Cloud Run** (Firebase Hosting cannot run Python;
@@ -86,8 +87,8 @@ For now everything runs locally: the pipeline writes to `data/derived/`, and
 - **Web:** set `VITE_API_URL` to the Cloud Run URL. Change `paths.siteFile` in
   `web/src/core/api/client.ts` to use `GET /sites/{id}/files/…` (`TODO(slope-echo-api)`),
   so story files come from the API too.
-- **Retire** `export_static` and the copied pictures in `web/public/data/` (keep only the
-  web team's fake data for offline development, or delete it).
+- **Retire** `export_static`, `data/web/` and the `siteData` plugin in `web/vite.config.ts`
+  (upload `data/web/` to the bucket instead; keep the web team's fakes for offline work).
 - **Before switching:** CORS allowlist gets the Firebase domain; secrets (Earthdata) go in
   Secret Manager, never in the image.
 

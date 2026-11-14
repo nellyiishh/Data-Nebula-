@@ -1,4 +1,8 @@
-"""Exports prepared sites into the web app's static data folder (web/public/data/).
+"""Exports prepared sites as website data into data/web/ (repo root).
+
+data/web/ holds only backend output, in the exact layout the future Cloud Storage bucket
+gets. The web app serves it at /data (web/vite.config.ts, plugin `siteData`), falling back
+file by file to the web team's fake data in web/public/data/, which this never touches.
 
 TODO(server-backend): temporary. Once the API runs on Cloud Run with data in Cloud Storage,
 the web reads from the API and this export is retired (see the plan, section 0).
@@ -7,9 +11,9 @@ the web reads from the API and this export is retired (see the plan, section 0).
     uv run python -m pipeline.export_static --site togus-bulak  # only some
 
 The web reads these files when VITE_API_URL is empty (the default deploy), so this is what
-judges see unless the API is hosted. Layout (web/src/core/api/client.ts):
+judges see unless the API is hosted. Layout (web/src/core/api/client.ts), under data/web/:
 
-    sites.json                          GET /sites                (merged: other sites kept)
+    sites.json                          GET /sites   (merged: earlier exported sites kept)
     sites/{id}.json                     GET /sites/{id}
     sites/{id}/layers/{layer}/{date}.png
     sites/{id}/change/{from}_{to}.png   GET …/change.png, every consecutive pair (HH)
@@ -31,7 +35,7 @@ from app.features.sites.repository import EXT_DIR, LAYERS_DIR, SiteRepository
 from app.features.sites.schemas import SiteSummary
 from app.features.sites.service import SiteService
 
-WEB_DATA_DIR = REPO_ROOT / "web" / "public" / "data"
+SITE_DATA_DIR = REPO_ROOT / "data" / "web"
 log = get_logger("export")
 
 
@@ -78,7 +82,7 @@ def _export_site(service: SiteService, source_dir: Path, out_dir: Path, site_id:
 
 
 def _merge_index(path: Path, exported: list[SiteSummary]) -> None:
-    """Replaces exported sites in sites.json and keeps the others (e.g. the web's fakes)."""
+    """Replaces exported sites in sites.json and keeps sites exported earlier."""
     entries: list[dict[str, Any]] = json.loads(path.read_text()) if path.is_file() else []
     fresh = {site.id: site.model_dump(mode="json") for site in exported}
     merged = [fresh.pop(entry["id"], entry) for entry in entries]
@@ -88,9 +92,9 @@ def _merge_index(path: Path, exported: list[SiteSummary]) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Export prepared sites into web/public/data/.")
+    parser = argparse.ArgumentParser(description="Export prepared sites into data/web/.")
     parser.add_argument("--site", action="append", dest="sites", help="site id (repeatable)")
-    parser.add_argument("--out", type=Path, default=WEB_DATA_DIR, help="web data folder")
+    parser.add_argument("--out", type=Path, default=SITE_DATA_DIR, help="website data folder")
     args = parser.parse_args()
     configure_logging()
     exported = export_static(Settings().data_dir, args.out, args.sites)

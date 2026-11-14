@@ -81,7 +81,8 @@ data_nebula/
 ├── CLAUDE.md                  # this file (source of truth)
 ├── backend/                   # API service (+ pipeline/ for offline NISAR preprocessing)
 ├── web/                       # web client (interactive map, time series, story)
-├── data/                      # manifest.json committed; raw/ and derived/ gitignored
+├── data/                      # manifest.json + ext/ committed; raw/, derived/ gitignored;
+│                              #   web/ = website data from the export (served by web/ at /data)
 ├── contracts/                 # openapi.json (generated from backend, committed)
 ├── docs/
 │   ├── architecture.md        # how it fits together (pointer-only for rules)
@@ -323,7 +324,7 @@ uv run --group pipeline pytest            # full suite — required before done 
 uv run python -m app.export_openapi       # regenerate contracts/openapi.json after any API change
 uv run python -m pipeline.make_demo_site  # synthetic demo site → data/derived/demo-reservoir/
 uv run python -m pipeline.prepare_nisar   # real NISAR → same files
-uv run python -m pipeline.export_static   # prepared sites → web/public/data/ (what the deployed web reads)
+uv run python -m pipeline.export_static   # prepared sites → data/web/ (website data; web serves it at /data)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 
 # web/

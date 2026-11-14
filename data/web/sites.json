@@ -1,0 +1,12 @@
+[
+  {
+    "id": "demo-reservoir",
+    "name": "Demo reservoir (synthetic data)",
+    "center": [
+      72.88,
+      41.79
+    ],
+    "change_type": "water",
+    "source": "demo"
+  }
+]

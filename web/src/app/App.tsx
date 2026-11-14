@@ -17,9 +17,13 @@ type Section = 'everyone' | 'specialists'
 export function App() {
   const [params, setParams] = useUrlState()
   const sites = useSites()
-  const siteId = params.site ?? (sites.status === 'ready' ? (sites.data[0]?.id ?? null) : null)
+  // An unknown ?site= (e.g. an old link to the removed demo site) falls back to the first real site.
+  const known = sites.status === 'ready' ? sites.data : []
+  const siteId =
+    sites.status !== 'ready' ? null : known.some((s) => s.id === params.site) ? params.site! : (known[0]?.id ?? null)
   const site = useSite(siteId)
-  const research = params.mode === 'research'
+  // The specialist section always shows full detail (Explore and Research were merged).
+  const research = true
   const section: Section = params.section === 'everyone' ? 'everyone' : 'specialists'
 
   if (params.view === 'app') {
@@ -57,14 +61,6 @@ export function App() {
 
       {section === 'specialists' && (
         <div className="app__toolbar">
-          <div className="mode-toggle" role="group" aria-label="Detail level">
-            <button type="button" className="btn" aria-pressed={!research} onClick={() => setParams({ mode: undefined })}>
-              Explore
-            </button>
-            <button type="button" className="btn" aria-pressed={research} onClick={() => setParams({ mode: 'research' })}>
-              Research
-            </button>
-          </div>
           <a className="btn btn--primary app__open" href={`?view=app${siteId ? `&site=${siteId}` : ''}`}>
             Open workspace
           </a>

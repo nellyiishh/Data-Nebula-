@@ -18,7 +18,7 @@ Before pushing: `npm run lint && npm run build` (both must pass with zero warnin
 | Section | URL | For |
 |---|---|---|
 | **For everyone** | `/?section=everyone` | Curious people: one place, four ways to look (before/after, time-lapse, what changed, photo vs radar), three numbers, how radar works, warning signs. `src/app/EveryonePage.tsx`, texts in `src/features/everyone/content.ts` |
-| **For specialists** | `/` (default) | Everything below: the story, the workspace and the report. Explore/Research and "Open workspace" sit in the bar under the header |
+| **For specialists** | `/` (default) | Everything below: the story, the workspace and the report, always at full detail. "Open workspace" sits in the bar under the header |
 
 Logo: `public/brand/trace-mark.png` (cut from the team logo). Hero background: `public/brand/hero-mountains.jpg`
 (1672 px, + `hero-mountains-1280.jpg` for small screens), a mountain landscape supplied by the team: a trail over
@@ -38,7 +38,7 @@ link opens the same layer, date, point and overlays in either mode.
 ### TRACE workspace (`src/app/Workspace.tsx`)
 
 ```
-┌ top: TRACE · search (area, place, "lat, lon") · current date · DEMO · Explore/Research · Story ┐
+┌ top: TRACE · search (area, place, "lat, lon") · current date · DEMO · Story ──────────────────┐
 ├ steps: 1 Explore map → 2 Change analysis → 3 Rainfall context → 4 Infrastructure → 5 Report ──┤
 ├ left: map layers ──────┬ centre: map ─────────────────────┬ right: selected area (per step) ──┤
 ├ bottom: observation timeline — Play, rain bars, NISAR passes (click to jump), event line ──────┘
@@ -62,18 +62,17 @@ Design system: "Dark Earth Intelligence" palette in `src/core/theme/tokens.css`,
 | 08 | Investigation report: preview + printable PDF | `src/features/report/` |
 | 09 | Data & science: validation, limits, methods, datasets, AI use | `src/features/story/DataLimits.tsx` |
 
-- **Explore / Research** toggle in the header: every screen has a plain and a detailed text.
-- **The URL keeps the view** (`?site, layer, f, cmp, a, b, ov, pt, op, t3d, ct, mode`), so a link opens the same frame.
+- **One level of detail** for specialists: the former Explore and Research modes were merged; every screen shows the detailed text. Plain-language versions live in the "For everyone" section.
+- **The URL keeps the view** (`?site, section, layer, f, cmp, a, b, ov, pt, op, t3d, ct`), so a link opens the same frame.
 - **Field brief**: `?site=<id>&view=brief` → printable page (browser Print → Save as PDF).
 
 ## Where data comes from
 
 `src/core/api/client.ts` is the only file that builds URLs.
 
-- **`VITE_API_URL` empty (default)** → static files at `/data`: real backend output from
-  `../data/web/` (written by `python -m pipeline.export_static`) first, then the **FAKE** files in
-  `public/data/` (`npm run fake-data`) for anything the backend has not exported. The
-  `siteData` plugin in `vite.config.ts` does this in dev and in `npm run build`.
+- **`VITE_API_URL` empty (default)** → static files at `/data`: the real backend output in
+  `../data/web/` (written by `python -m pipeline.export_static`). The `siteData` plugin in
+  `vite.config.ts` serves it in dev and copies it into `npm run build`. There is no demo/fake site any more.
 - **`VITE_API_URL=http://localhost:8000`** in `web/.env.local` → the FastAPI backend.
 
 Static layout = the backend contract (`contracts/openapi.json`) + an optional extension:
@@ -107,7 +106,7 @@ All paths are relative to `sites/{id}/`. Every raster shares the site's `corners
 | `catalog[]` `{date, type, name, source}` | Registered events near the site (NASA Global Landslide Catalog / COOLR) | rain/exposure |
 | `raw_example` `{linear, db, date}` | One date as raw power and as stretched dB (Radar Vision) | NISAR |
 
-Open `public/data/sites/togus-bulak.json` for a complete example.
+Open `../data/web/sites/toguz-bulak.json` for a complete example.
 
 ## Who owns what
 

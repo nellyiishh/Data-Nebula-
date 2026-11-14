@@ -335,7 +335,6 @@ uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 npm ci
 npm run lint && npm run typecheck         # oxlint + tsc -b
 npm run build                             # tsc -b && vite build
-npm run fake-data                         # regenerate FAKE public/data/ (until the backend export exists)
 npm run dev                               # http://localhost:5173
 # not set up yet: npm test, npm run test:e2e, npm run gen:api
 ```

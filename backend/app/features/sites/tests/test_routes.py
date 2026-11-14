@@ -155,3 +155,39 @@ def test_cors_allows_the_configured_frontend(client: TestClient) -> None:
     response = client.get(BASE, headers={"Origin": FRONTEND_ORIGIN})
 
     assert response.headers["access-control-allow-origin"] == FRONTEND_ORIGIN
+
+
+def test_change_stats_measure_new_water_as_darker(client: TestClient) -> None:
+    response = client.get(f"{SITE}/change-stats", params={"from": ISO_DATES[0], "to": ISO_DATES[1]})
+
+    assert response.status_code == 200
+    stats = response.json()
+    # Columns 3-4 turned to water (-15 dB); the 3x3 mean spreads that over columns 2-5.
+    assert stats["from"] == ISO_DATES[0] and stats["to"] == ISO_DATES[1]
+    assert stats["polarization"] == "hh"
+    assert stats["threshold_db"] == 3.0
+    assert stats["valid_pct"] == 100.0
+    assert stats["darker_pct"] == 40.0
+    assert stats["brighter_pct"] == 0.0
+    assert stats["changed_pct"] == 40.0
+    assert stats["darker_km2"] == pytest.approx(0.4, rel=1e-3)
+    assert stats["changed_km2"] == pytest.approx(0.4, rel=1e-3)
+    assert stats["mean_delta_db"] == pytest.approx(-3.0, abs=0.01)
+
+
+def test_change_stats_ignore_pixels_without_data(client: TestClient) -> None:
+    response = client.get(f"{SITE}/change-stats", params={"from": ISO_DATES[1], "to": ISO_DATES[2]})
+
+    stats = response.json()
+    # Pixel (9, 9) has no data on the last date: 99 valid pixels, 50 of them brighter.
+    assert stats["valid_pct"] == 99.0
+    assert stats["brighter_pct"] == pytest.approx(100 * 50 / 99, abs=0.05)
+    assert stats["darker_pct"] == 0.0
+    assert stats["brighter_km2"] == pytest.approx(0.5, rel=1e-3)
+
+
+def test_change_stats_for_unknown_date_is_404(client: TestClient) -> None:
+    response = client.get(f"{SITE}/change-stats", params={"from": ISO_DATES[0], "to": "2026-01-01"})
+
+    assert response.status_code == 404
+    assert _error_code(response) == "date.not_found"

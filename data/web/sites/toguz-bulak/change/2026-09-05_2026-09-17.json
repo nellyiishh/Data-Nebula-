@@ -1,0 +1,15 @@
+{
+  "site_id": "toguz-bulak",
+  "from": "2026-09-05",
+  "to": "2026-09-17",
+  "polarization": "hh",
+  "threshold_db": 3.0,
+  "valid_pct": 100.0,
+  "darker_pct": 61.1,
+  "brighter_pct": 0.0,
+  "changed_pct": 61.1,
+  "darker_km2": 35.5502,
+  "brighter_km2": 0.014,
+  "changed_km2": 35.5641,
+  "mean_delta_db": -3.53
+}

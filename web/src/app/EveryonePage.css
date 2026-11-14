@@ -90,8 +90,15 @@
   font-size: 16px;
   cursor: pointer;
 }
+.ev-modes button {
+  transition:
+    background-color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
 .ev-modes button:hover {
   border-color: var(--accent);
+  transform: translateY(-1px);
 }
 .ev-modes button[aria-selected='true'] {
   background: color-mix(in srgb, var(--accent) 22%, var(--surface));

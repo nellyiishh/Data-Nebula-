@@ -63,14 +63,6 @@ export function Workspace({ site, sites, research, params, setParams }: Props) {
           <button type="button" className="btn ws__drawer-btn" aria-pressed={rightOpen} onClick={() => setRightOpen((v) => !v)}>
             Details
           </button>
-          <div className="mode-toggle" role="group" aria-label="Detail level">
-            <button type="button" className="btn" aria-pressed={!research} onClick={() => setParams({ mode: undefined })}>
-              Explore
-            </button>
-            <button type="button" className="btn" aria-pressed={research} onClick={() => setParams({ mode: 'research' })}>
-              Research
-            </button>
-          </div>
           <a className="btn" href={`?site=${site.id}`}>
             Story
           </a>

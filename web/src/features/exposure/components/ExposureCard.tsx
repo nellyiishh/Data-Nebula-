@@ -12,9 +12,8 @@ export function ExposureCard({ exposure, research }: { exposure: SlopeEcho['expo
         <Stat value={`${exposure.roads_km} km`} label="of road" />
         <Stat value={`${exposure.distance_km} km`} label={`to ${exposure.nearest_settlement}`} />
       </div>
-      <p className="muted exposure__note">
-        {research ? exposure.method : 'Being close to a slope does not by itself mean being in danger.'}
-      </p>
+      <p className="muted exposure__note">{exposure.method}</p>
+      <p className="muted exposure__note">Being close to a slope does not by itself mean being in danger.</p>
       {research && (
         <p className="muted exposure__note">
           Source:{' '}

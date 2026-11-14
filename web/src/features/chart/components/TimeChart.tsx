@@ -26,10 +26,12 @@ interface Props {
   onTickClick?: (date: string) => void
   cursor?: string
   height?: number
+  /** Logical width of the drawing; use a wider value for short, full-width strips. */
+  width?: number
   ariaLabel: string
 }
 
-const W = 640
+const DEFAULT_W = 640
 const PAD = { l: 40, r: 10, t: 24, b: 34 }
 const DAY = 864e5
 
@@ -48,6 +50,7 @@ function niceRange(values: number[]): [number, number] {
 export function TimeChart(p: Props) {
   const clipId = useId()
   const H = p.height ?? 200
+  const W = p.width ?? DEFAULT_W
   const t0 = t(p.start)
   const t1 = t(p.end)
   const x = (d: string) => PAD.l + ((t(d) - t0) / Math.max(DAY, t1 - t0)) * (W - PAD.l - PAD.r)

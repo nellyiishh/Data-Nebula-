@@ -71,7 +71,10 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
           <h1 id="hero-title">{PROJECT.tagline}</h1>
           <p className="hero__lede">{PROJECT.mission}</p>
           <div className="hero__cta">
-            <a className="btn btn--primary" href="#time-machine">
+            <a className="btn btn--primary" href={`?view=app&site=${site.id}`}>
+              Open the TRACE workspace
+            </a>
+            <a className="btn" href="#time-machine">
               Start the Time Machine
             </a>
             <a className="btn" href="#explore">

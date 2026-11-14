@@ -1,4 +1,4 @@
-# web — Slope Echo frontend
+# web — TRACE / Slope Echo frontend
 
 *Rain loads it. Radar hears it. People live below it.* React + Vite + TypeScript + MapLibre GL.
 Rules live in [`../CLAUDE.md`](../CLAUDE.md); what is real vs demo is in [`../docs/wiring-notes.md`](../docs/wiring-notes.md).
@@ -12,6 +12,30 @@ npm run dev          # http://localhost:5173 (needs a browser with WebGL2 for th
 ```
 
 Before pushing: `npm run lint && npm run build` (both must pass with zero warnings).
+
+## Two ways in
+
+| Mode | URL | For |
+|---|---|---|
+| **Story** | `/` | Presentation and the public: 9 screens, one scroll |
+| **TRACE workspace** | `/?view=app` | Analysis: one screen, five investigation steps |
+| Report | `/?view=brief` | Printable PDF |
+
+Both use the same state (`src/app/useExplorerState.ts`) and the same parts (`src/app/ExplorerParts.tsx`), so a
+link opens the same layer, date, point and overlays in either mode.
+
+### TRACE workspace (`src/app/Workspace.tsx`)
+
+```
+┌ top: TRACE · search (area, place, "lat, lon") · current date · DEMO · Explore/Research · Story ┐
+├ steps: 1 Explore map → 2 Change analysis → 3 Rainfall context → 4 Infrastructure → 5 Report ──┤
+├ left: map layers ──────┬ centre: map ─────────────────────┬ right: selected area (per step) ──┤
+├ bottom: observation timeline — Play, rain bars, NISAR passes (click to jump), event line ──────┘
+```
+
+On screens under 1000 px the side panels become drawers (Layers / Details buttons).
+Design system: "Dark Earth Intelligence" palette in `src/core/theme/tokens.css`, Inter + IBM Plex Mono
+(mono for dates, coordinates, IDs). Red is only for "radar got darker" and errors, never a generic danger colour.
 
 ## The page (9 screens, one scroll)
 
@@ -76,7 +100,7 @@ Open `public/data/sites/togus-bulak.json` for a complete example.
 
 | Folder | Owner | What is there |
 |---|---|---|
-| `src/app/` | map lead | Page composition, Time Machine and Radar Vision state, print page |
+| `src/app/` | map lead | Story composition, TRACE workspace, shared explorer state and parts, print page |
 | `src/core/map/` | map lead | `SarMap` (MapLibre: raster, overlays, GeoJSON, markers), preloading |
 | `src/features/timeline/` | map lead | `FrameSlider` (Play), `RainTimeline` |
 | `src/features/compare/` | compare | `SwipeCompare`, `LayerControls`, `Legend`, overlay colours |

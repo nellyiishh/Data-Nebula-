@@ -12,9 +12,10 @@ interface Props {
   activePass?: string
   onPassClick?: (date: string) => void
   height?: number
+  width?: number
 }
 
-export function RainTimeline({ rain, passes, event, activePass, onPassClick, height }: Props) {
+export function RainTimeline({ rain, passes, event, activePass, onPassClick, height, width }: Props) {
   const series = rain.status === 'ready' ? rain.data.series : []
   const dates = [...passes, ...series.map((s) => s.date), ...(event ? [event.date] : [])].sort()
   if (dates.length === 0) return <p className="state-msg">No dates yet.</p>
@@ -33,6 +34,7 @@ export function RainTimeline({ rain, passes, event, activePass, onPassClick, hei
         onTickClick={onPassClick}
         cursor={activePass}
         height={height}
+        width={width}
         ariaLabel="Daily rain, radar passes and the event date"
       />
       <div className="chart-key">
@@ -48,7 +50,7 @@ export function RainTimeline({ rain, passes, event, activePass, onPassClick, hei
         <span>▲ NISAR pass{onPassClick ? ' (click to jump)' : ''}</span>
         {event && (
           <span>
-            <i style={{ background: 'var(--danger)' }} />
+            <i style={{ background: 'var(--event)' }} />
             Event
           </span>
         )}

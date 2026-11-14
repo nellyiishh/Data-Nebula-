@@ -132,6 +132,8 @@ web dev server and build pick up at `/data`.
 - **Data:** prepared sites live in a **Cloud Storage bucket**, not on a laptop and not in the
   web repo. The API reads from the bucket (or images are served straight from it with
   public/signed URLs); `NEBULA_DATA_DIR` changes to point there.
+  **Step 1 done:** `backend/Dockerfile` bakes `data/derived/toguz-bulak` into the image
+  (12 MB), so Cloud Run works before the bucket exists; a data change means a rebuild.
 - **Pipeline:** stays offline (raw NISAR crops are large), but uploads its output to the
   bucket instead of only writing `data/derived/`. It can later run as a Cloud Run job.
 - **Web:** set `VITE_API_URL` to the Cloud Run URL. Change `paths.siteFile` in

@@ -1,0 +1,9 @@
+# Build context is the repo root (backend/Dockerfile). Allow-list: only what the API image needs.
+*
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/.python-version
+!backend/app/
+!data/derived/toguz-bulak/
+backend/app/**/tests/
+**/__pycache__/

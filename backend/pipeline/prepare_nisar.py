@@ -4,8 +4,10 @@
     uv run python -m pipeline.prepare_nisar
 
 Add a site to data/manifest.json (id, name, change_type, bbox [west, south, east, north],
-band, granules). Every granule must come from one track and frame, or viewing-angle
-differences show up as fake change. EARTHDATA_TOKEN must be set (backend/.env).
+band, granules, optional slope_echo). Extra files the slope_echo block points at go in
+data/ext/<site_id>/ and are copied to the site's ext/ folder. Every granule must come from
+one track and frame, or viewing-angle differences show up as fake change.
+EARTHDATA_TOKEN must be set (backend/.env).
 
 Per granule: remote_crop reads only the bbox of HH/HV (no full download), then this module
 despeckles in linear power, resamples onto one shared EPSG:3857 grid, converts to dB and
@@ -24,12 +26,15 @@ from pydantic import BaseModel
 from app.core.config import REPO_ROOT, Settings
 from app.core.logging import configure_logging, get_logger
 from app.features.sites.schemas import Acquisition, ChangeType
+from app.features.sites.slope_echo import SlopeEcho
 from pipeline.processing import despeckle, mercator_grid, to_db, to_mercator_grid
 from pipeline.remote_crop import BBox, Crop, crop_granule
 from pipeline.writer import SiteMeta, write_site
 
 MANIFEST_PATH = REPO_ROOT / "data" / "manifest.json"
 RAW_DIR = REPO_ROOT / "data" / "raw"
+# data/ext/<site_id>/: files made by teammates (coherence, GeoJSON, rain…), committed.
+EXT_ROOT = REPO_ROOT / "data" / "ext"
 ATTRIBUTION = (
     "Contains NISAR L-band data (NASA/ISRO), distributed by the ASF DAAC. Processed by Data Nebula."
 )
@@ -43,6 +48,7 @@ class ManifestSite(BaseModel):
     bbox: tuple[float, float, float, float]
     band: Literal["L", "S"] = "L"
     granules: list[str]
+    slope_echo: SlopeEcho | None = None
 
 
 class Manifest(BaseModel):
@@ -62,6 +68,7 @@ def prepare_site(
     raw_dir: Path,
     cropper: Cropper = crop_granule,
     max_side: int = 1024,
+    ext_root: Path = EXT_ROOT,
 ) -> Path:
     if len(site.granules) < 2:
         raise ValueError(f"{site.id}: a change map needs at least two dates")
@@ -97,6 +104,8 @@ def prepare_site(
             for crop in crops
         ],
         attribution=ATTRIBUTION,
+        slope_echo=site.slope_echo,
+        ext_dir=ext_dir if (ext_dir := ext_root / site.id).is_dir() else None,
     )
     return write_site(data_dir, meta, hh=stacks["HH"], hv=stacks["HV"], bounds_merc=bounds)
 

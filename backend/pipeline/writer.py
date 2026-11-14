@@ -7,6 +7,7 @@ API never needs to know where the numbers came from.
 import datetime as dt
 import math
 import shutil
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -23,17 +24,19 @@ from app.features.sites.rendering import (
     water_mask,
     water_rgba,
 )
-from app.features.sites.repository import LAYERS_DIR, SITE_FILE, STACK_FILE, STATS_FILE
+from app.features.sites.repository import EXT_DIR, LAYERS_DIR, SITE_FILE, STACK_FILE, STATS_FILE
 from app.features.sites.schemas import (
-    LAYER_NAMES,
     Acquisition,
     ChangeType,
     DataSource,
+    LayerName,
     PointOfInterest,
     SiteDetail,
     SiteStats,
     StatsEntry,
+    layers_for,
 )
+from app.features.sites.slope_echo import SlopeEcho
 
 Cube = NDArray[np.floating]
 
@@ -47,6 +50,10 @@ class SiteMeta:
     acquisitions: list[Acquisition]
     attribution: str
     points_of_interest: list[PointOfInterest] = field(default_factory=list)
+    slope_echo: SlopeEcho | None = None
+    # Folder of extra files (coherence, GeoJSON, rain…) copied to <site>/ext/. Kept outside
+    # data/derived/ because write_site deletes and rebuilds the site folder.
+    ext_dir: Path | None = None
 
 
 def write_site(
@@ -64,7 +71,9 @@ def write_site(
     (site_dir / SITE_FILE).write_text(detail.model_dump_json(indent=2))
     stats = _site_stats(meta, hh, hv, bounds_merc)
     (site_dir / STATS_FILE).write_text(stats.model_dump_json(indent=2))
-    _write_layers(site_dir, detail.dates, hh, hv)
+    _write_layers(site_dir, detail.layers, detail.dates, hh, hv)
+    if meta.ext_dir is not None:
+        shutil.copytree(meta.ext_dir, site_dir / EXT_DIR)
     np.savez_compressed(
         site_dir / STACK_FILE,
         hh=hh.astype(np.float32),
@@ -72,7 +81,17 @@ def write_site(
         bounds_merc=np.asarray(bounds_merc, dtype=np.float64),
         dates=np.array([d.isoformat() for d in detail.dates]),
     )
+    missing = _missing_references(site_dir, meta.slope_echo)
+    if missing:
+        shutil.rmtree(site_dir)  # never leave a site whose story links to nothing
+        raise ValueError(f"{meta.id}: slope_echo references files that do not exist: {missing}")
     return site_dir
+
+
+def _missing_references(site_dir: Path, slope_echo: SlopeEcho | None) -> list[str]:
+    if slope_echo is None:
+        return []
+    return [rel for rel in slope_echo.referenced_files() if not (site_dir / rel).is_file()]
 
 
 def _validate(meta: SiteMeta, hh: Cube, hv: Cube, bounds_merc: MercatorBounds) -> None:
@@ -102,10 +121,11 @@ def _site_detail(meta: SiteMeta, bounds_merc: MercatorBounds) -> SiteDetail:
             mercator_to_lonlat(xmax, ymin),
             mercator_to_lonlat(xmin, ymin),
         ),
-        layers=list(LAYER_NAMES),
+        layers=layers_for(meta.change_type),
         acquisitions=meta.acquisitions,
         points_of_interest=meta.points_of_interest,
         attribution=meta.attribution,
+        slope_echo=meta.slope_echo,
     )
 
 
@@ -142,15 +162,19 @@ def _site_stats(meta: SiteMeta, hh: Cube, hv: Cube, bounds_merc: MercatorBounds)
     return SiteStats(site_id=meta.id, water_threshold_db=WATER_THRESHOLD_DB, series=series)
 
 
-def _write_layers(site_dir: Path, dates: list[dt.date], hh: Cube, hv: Cube) -> None:
+_RENDERERS: dict[LayerName, Callable[[Cube, Cube], NDArray[np.uint8]]] = {
+    "hh": lambda hh, _hv: grayscale_rgba(hh, "hh"),
+    "hv": lambda _hh, hv: grayscale_rgba(hv, "hv"),
+    "rgb": false_colour_rgba,
+    "water": lambda hh, _hv: water_rgba(hh),
+}
+
+
+def _write_layers(
+    site_dir: Path, layers: list[LayerName], dates: list[dt.date], hh: Cube, hv: Cube
+) -> None:
     for t, date in enumerate(dates):
-        images = {
-            "hh": grayscale_rgba(hh[t], "hh"),
-            "hv": grayscale_rgba(hv[t], "hv"),
-            "rgb": false_colour_rgba(hh[t], hv[t]),
-            "water": water_rgba(hh[t]),
-        }
-        for layer, rgba in images.items():
+        for layer in layers:
             path = site_dir / LAYERS_DIR / layer / f"{date.isoformat()}.png"
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(encode_png(rgba))
+            path.write_bytes(encode_png(_RENDERERS[layer](hh[t], hv[t])))

@@ -9,7 +9,7 @@
 import datetime as dt
 import functools
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import numpy as np
 
@@ -20,6 +20,9 @@ SITE_FILE = "site.json"
 STATS_FILE = "stats.json"
 STACK_FILE = "stack.npz"
 LAYERS_DIR = "layers"
+EXT_DIR = "ext"
+# Only these folders of a site are served as plain files (never stack.npz or site.json).
+SERVED_DIRS = (EXT_DIR, LAYERS_DIR)
 SITE_ID_PATTERN = r"^[a-z0-9][a-z0-9-]{0,62}$"
 _SITE_ID = re.compile(SITE_ID_PATTERN)
 
@@ -46,6 +49,18 @@ class SiteRepository:
 
     def layer_path(self, site_id: str, layer: LayerName, date: dt.date) -> Path | None:
         return self._file(site_id, f"{LAYERS_DIR}/{layer}/{date.isoformat()}.png")
+
+    def site_file(self, site_id: str, relative: str) -> Path | None:
+        """A file under ext/ or layers/ of the site, or None. Refuses anything that would
+        resolve outside the site folder (.., symlinks)."""
+        parts = PurePosixPath(relative).parts
+        if len(parts) < 2 or parts[0] not in SERVED_DIRS or ".." in parts:
+            return None
+        path = self._file(site_id, relative)
+        if path is None:
+            return None
+        site_dir = (self._data_dir / site_id).resolve()
+        return path if path.resolve().is_relative_to(site_dir) else None
 
     def get_stack(self, site_id: str) -> SiteStack | None:
         path = self._file(site_id, STACK_FILE)

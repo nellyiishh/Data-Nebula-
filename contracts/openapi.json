@@ -47,6 +47,119 @@
         "title": "Acquisition",
         "type": "object"
       },
+      "CatalogEntry": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "type",
+          "name",
+          "source"
+        ],
+        "title": "CatalogEntry",
+        "type": "object"
+      },
+      "DbRange": {
+        "properties": {
+          "max_db": {
+            "title": "Max Db",
+            "type": "number"
+          },
+          "min_db": {
+            "title": "Min Db",
+            "type": "number"
+          }
+        },
+        "required": [
+          "min_db",
+          "max_db"
+        ],
+        "title": "DbRange",
+        "type": "object"
+      },
+      "Display": {
+        "description": "How the site's images were drawn: the web legend must use these numbers.",
+        "properties": {
+          "brighter_color": {
+            "title": "Brighter Color",
+            "type": "string"
+          },
+          "change_threshold_db": {
+            "description": "Change images colour |\u0394dB| above this",
+            "title": "Change Threshold Db",
+            "type": "number"
+          },
+          "darker_color": {
+            "title": "Darker Color",
+            "type": "string"
+          },
+          "hh": {
+            "$ref": "#/components/schemas/DbRange"
+          },
+          "hv": {
+            "$ref": "#/components/schemas/DbRange"
+          },
+          "ratio": {
+            "$ref": "#/components/schemas/DbRange",
+            "description": "Blue channel of the colour mix: HH minus HV"
+          },
+          "water_color": {
+            "title": "Water Color",
+            "type": "string"
+          },
+          "water_threshold_db": {
+            "title": "Water Threshold Db",
+            "type": "number"
+          }
+        },
+        "required": [
+          "hh",
+          "hv",
+          "ratio",
+          "change_threshold_db",
+          "water_threshold_db",
+          "darker_color",
+          "brighter_color",
+          "water_color"
+        ],
+        "title": "Display",
+        "type": "object"
+      },
+      "DualText": {
+        "description": "The same text in two registers: plain language and research detail.",
+        "properties": {
+          "explore": {
+            "title": "Explore",
+            "type": "string"
+          },
+          "research": {
+            "title": "Research",
+            "type": "string"
+          }
+        },
+        "required": [
+          "explore",
+          "research"
+        ],
+        "title": "DualText",
+        "type": "object"
+      },
       "ErrorBody": {
         "properties": {
           "code": {
@@ -82,6 +195,244 @@
         "title": "ErrorResponse",
         "type": "object"
       },
+      "Event": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          }
+        },
+        "required": [
+          "date",
+          "label",
+          "source"
+        ],
+        "title": "Event",
+        "type": "object"
+      },
+      "Exposure": {
+        "properties": {
+          "buildings": {
+            "title": "Buildings",
+            "type": "integer"
+          },
+          "distance_km": {
+            "title": "Distance Km",
+            "type": "number"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "nearest_settlement": {
+            "title": "Nearest Settlement",
+            "type": "string"
+          },
+          "radius_km": {
+            "title": "Radius Km",
+            "type": "number"
+          },
+          "roads_km": {
+            "title": "Roads Km",
+            "type": "number"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          }
+        },
+        "required": [
+          "radius_km",
+          "buildings",
+          "roads_km",
+          "nearest_settlement",
+          "distance_km",
+          "method",
+          "source"
+        ],
+        "title": "Exposure",
+        "type": "object"
+      },
+      "ExtFrame": {
+        "description": "One image of an extra layer: either one date, or a pair of dates (from \u2192 to).",
+        "properties": {
+          "date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "ExtFrame",
+        "type": "object"
+      },
+      "ExtLayer": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "frames": {
+            "items": {
+              "$ref": "#/components/schemas/ExtFrame"
+            },
+            "title": "Frames",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "description": "coherence, displacement or optical (others allowed)",
+            "title": "Kind",
+            "type": "string"
+          },
+          "legend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Legend"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "unit",
+          "description",
+          "source",
+          "frames",
+          "legend"
+        ],
+        "title": "ExtLayer",
+        "type": "object"
+      },
+      "ExtOverlay": {
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "file": {
+            "title": "File",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "image",
+              "polygon",
+              "exposure",
+              "outline"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "file",
+          "description",
+          "source"
+        ],
+        "title": "ExtOverlay",
+        "type": "object"
+      },
+      "Fact": {
+        "properties": {
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SourceRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "Fact",
+        "type": "object"
+      },
       "HealthStatus": {
         "properties": {
           "status": {
@@ -94,6 +445,30 @@
           "status"
         ],
         "title": "HealthStatus",
+        "type": "object"
+      },
+      "Legend": {
+        "properties": {
+          "colors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Colors",
+            "type": "array"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "colors",
+          "labels"
+        ],
+        "title": "Legend",
         "type": "object"
       },
       "PointOfInterest": {
@@ -160,6 +535,53 @@
         "title": "PointTimeseries",
         "type": "object"
       },
+      "Rain": {
+        "properties": {
+          "file": {
+            "description": "File with {\"series\": [{\"date\", \"mm\"}]}",
+            "title": "File",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceRef"
+          }
+        },
+        "required": [
+          "file",
+          "source",
+          "note"
+        ],
+        "title": "Rain",
+        "type": "object"
+      },
+      "RawExample": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "db": {
+            "title": "Db",
+            "type": "string"
+          },
+          "linear": {
+            "title": "Linear",
+            "type": "string"
+          }
+        },
+        "required": [
+          "linear",
+          "db",
+          "date"
+        ],
+        "title": "RawExample",
+        "type": "object"
+      },
       "SiteDetail": {
         "properties": {
           "acquisitions": {
@@ -194,7 +616,8 @@
               "crops",
               "forest",
               "ice",
-              "deformation"
+              "deformation",
+              "landslide"
             ],
             "title": "Change Type",
             "type": "string"
@@ -269,6 +692,9 @@
             "title": "Dates",
             "type": "array"
           },
+          "display": {
+            "$ref": "#/components/schemas/Display"
+          },
           "id": {
             "title": "Id",
             "type": "string"
@@ -296,6 +722,17 @@
             },
             "title": "Points Of Interest",
             "type": "array"
+          },
+          "slope_echo": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SlopeEcho"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Landslide story extras (Slope Echo); null for other sites."
           },
           "source": {
             "description": "'demo' is synthetic data; the UI must label it.",
@@ -372,7 +809,8 @@
               "crops",
               "forest",
               "ice",
-              "deformation"
+              "deformation",
+              "landslide"
             ],
             "title": "Change Type",
             "type": "string"
@@ -403,6 +841,167 @@
           "source"
         ],
         "title": "SiteSummary",
+        "type": "object"
+      },
+      "SlopeEcho": {
+        "properties": {
+          "catalog": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CatalogEntry"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "event": {
+            "$ref": "#/components/schemas/Event"
+          },
+          "exposure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Exposure"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/ExtLayer"
+            },
+            "title": "Layers",
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "overlays": {
+            "items": {
+              "$ref": "#/components/schemas/ExtOverlay"
+            },
+            "title": "Overlays",
+            "type": "array"
+          },
+          "point_extras": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Point-of-interest id \u2192 file with per-pair coherence and LOS (cm)",
+            "title": "Point Extras",
+            "type": "object"
+          },
+          "rain": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Rain"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "raw_example": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RawExample"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "story": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/DualText"
+            },
+            "propertyNames": {
+              "enum": [
+                "place",
+                "rain",
+                "radar",
+                "tracking",
+                "exposure"
+              ]
+            },
+            "title": "Story",
+            "type": "object"
+          },
+          "validation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Validation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "region",
+          "country",
+          "event",
+          "facts",
+          "story",
+          "layers",
+          "overlays",
+          "rain",
+          "point_extras",
+          "exposure",
+          "validation",
+          "limitations"
+        ],
+        "title": "SlopeEcho",
+        "type": "object"
+      },
+      "SourceRef": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SourceRef",
         "type": "object"
       },
       "StatsEntry": {
@@ -486,6 +1085,51 @@
           "hv_db"
         ],
         "title": "TimeseriesEntry",
+        "type": "object"
+      },
+      "Validation": {
+        "properties": {
+          "changed_inside_pct": {
+            "title": "Changed Inside Pct",
+            "type": "number"
+          },
+          "changed_outside_pct": {
+            "title": "Changed Outside Pct",
+            "type": "number"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "pair": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "type": "string"
+              }
+            ],
+            "title": "Pair",
+            "type": "array"
+          },
+          "threshold_db": {
+            "title": "Threshold Db",
+            "type": "number"
+          }
+        },
+        "required": [
+          "threshold_db",
+          "pair",
+          "changed_inside_pct",
+          "changed_outside_pct",
+          "method"
+        ],
+        "title": "Validation",
         "type": "object"
       }
     }
@@ -686,6 +1330,64 @@
           }
         },
         "summary": "Change between two dates",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/files/{file_path}": {
+      "get": {
+        "description": "Files the slope_echo block points at (ext/\u2026), plus layer images (layers/\u2026). Paths are the same as in the static export, relative to the site folder.",
+        "operationId": "get_site_file_api_v1_sites__site_id__files__file_path__get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "file_path",
+            "required": true,
+            "schema": {
+              "title": "File Path",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "A file of the site's story",
         "tags": [
           "sites"
         ]

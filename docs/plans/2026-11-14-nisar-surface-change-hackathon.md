@@ -4,6 +4,79 @@ NASA Space Apps 2026 · 6 people (1 backend, 5 frontend) · 6 hours · written 2
 
 Challenge page: https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/
 
+## 0. Update (afternoon): the web app became "Slope Echo"
+
+The team moved the story from seasonal water to **a landslide in Kyrgyzstan (Togus-Bulak)**.
+The web app (`web/`, 9 screens) is built on its own fake files in `web/public/data/` and
+asks for much more than the backend serves. Sections 2 and 7 below describe the old
+water story; this section replaces them where they disagree.
+
+### What the web reads vs what the backend gives today
+
+| Web needs | Backend today | Gap |
+|---|---|---|
+| `sites.json`, `sites/{id}.json` with `change_type: "landslide"` | Sites API, but `change_type` only allows water/crops/forest/ice/deformation | **Blocking:** a landslide site fails validation |
+| Optional `slope_echo` block in site detail (event, facts, story, extra layers, overlays, rain, exposure, validation, limitations, catalog, raw example) | Not in the schema | Add as an optional field so the API can serve what the static files carry |
+| Files under `sites/{id}/ext/…` (coherence, displacement, optical PNGs, GeoJSON, rain, per-point extras) | No route | Web calls these static-only (`TODO(slope-echo-api)`) |
+| HH / HV / colour-mix PNG per date | Served (plus a water mask the landslide story does not use) | Only list the layers that fit the change type |
+| Change image per **consecutive pair**, static path `change/{from}_{to}.png` | Rendered on request only | Static export must pre-render the pairs |
+| Point chart, static path `points/{poi_id}.json` | Query endpoint only | Static export must pre-compute each point |
+| Legend: fixed dB stretch (`TODO(legend-api)`) | Ranges live only in `rendering.py` | Send the ranges in the site detail |
+| Coherence and LOS displacement (cm) per pair, per point | **Nothing** | Needs interferogram data: GCOV has no phase (see catch) |
+| Radar-blind mask (layover / shadow) | Nothing | Check GCOV mask layers; otherwise from the DEM |
+| Validation: % changed inside the scar vs the stable area | Nothing | Compute from the HH stack + `scar.geojson` / `stable.geojson` |
+| Raw linear-power example image | Nothing | One extra PNG from the pipeline |
+| Rain (IMERG), exposure (OpenStreetMap), optical, event catalog | Nothing | Owned by the rain / exposure / optical people, not backend; export only copies their files |
+
+### Catches
+
+- **The web runs on static files by default** (`VITE_API_URL` empty). Unless someone hosts
+  the API, judges see `web/public/data/`. So the most important backend output is an
+  **export into that folder**, not more endpoints.
+- **Coherence and displacement need a different NISAR product.** GCOV is brightness only.
+  Coherence and ground motion come from the interferogram product (GUNW: coherence +
+  unwrapped phase; L-band wavelength ≈ 24 cm, so LOS cm = phase × 24 / (4π)). Check on ASF
+  Vertex whether GUNW pairs exist over the site *before* building anything for it. If not,
+  label those screens "not available for this site" — never show the fake ones as real.
+- Real NISAR coverage starts 17 June 2026 (gap 27 Jul – 10 Aug). The event date in the
+  fake file and the dates of real passes must match, or the before/after story breaks.
+- Togus-Bulak's centre is still a placeholder (`TODO(site)`). The pipeline bbox depends on it.
+
+### Backend work, in order
+
+**P0 — make the web run on real backend output — DONE (all 7 steps, tests green)**
+1. Add `"landslide"` to `change_type`.
+2. Add the optional `slope_echo` block to the site schema, typed to match
+   `web/src/features/sites/model/types.ts`; the writer copies it from the manifest.
+3. Put the display ranges (dB min/max per layer, change threshold, colours) in the site
+   detail; the web legend reads them (closes `TODO(legend-api)`).
+4. Per-site `layers` list depends on the change type (no water mask for a landslide).
+5. **Static export** (`python -m pipeline.export_static`): writes `web/public/data/` in the
+   web's layout — `sites.json`, `sites/{id}.json`, layers, `change/{from}_{to}.png` for
+   every consecutive pair, `points/{poi}.json`, and copies `ext/` files.
+6. Serve `ext/` files from the API (`GET /sites/{id}/files/ext/…`, safe paths only), so
+   API mode matches static mode.
+7. Regenerate `contracts/openapi.json` after every step.
+
+**P1 — real landslide data**
+8. Choose the bbox and the passes before/after the event (one track and frame) and run
+   `prepare_nisar` on GCOV.
+9. Validation numbers from the stack + scar/stable polygons.
+10. Raw linear-power example image.
+11. Radar-blind mask.
+
+**P2 — only if GUNW exists over the site**
+12. Coherence and LOS displacement PNGs per pair + per-point `coherence` / `los_cm`.
+
+**Not backend:** rain, exposure, optical, catalog, story text. The export copies them.
+
+### Agree with the web team before step 2
+
+- The `slope_echo` field names stay exactly as in `types.ts` / `web/README.md`.
+- Static layout and paths stay as in `web/src/core/api/client.ts`.
+- Who replaces the hand-written TS types with ones generated from `contracts/openapi.json`
+  (`TODO(contract-api)`).
+
 ## 1. What the challenge asks for
 
 Build an **interactive application** that uses **NISAR radar data** to track and show one or
@@ -24,7 +97,7 @@ And it asks you to answer, in the project itself:
 It must be **open source** and **user-friendly**. Space Apps judges on Impact, Creativity,
 Validity, Relevance and Presentation.
 
-## 2. What we build (proposal — change it in the first 30 minutes if you disagree)
+## 2. (Superseded by section 0) What we build (proposal — change it in the first 30 minutes if you disagree)
 
 **One web page that tells one clear story about one place.** Working title: *Earth's Rhythm*.
 
@@ -169,7 +242,7 @@ Frontend 5 starts the submission text in hour 1, not hour 5. It is a full job.
 | **4:30–5:30** | README: data sources, how to rerun | Screenshots, final polish | Finish demo and project page |
 | **5:30–6:00** | | | **Submit.** Test every link in a private window. Keep 30 minutes spare |
 
-## 7. Backend steps in order
+## 7. (Superseded by section 0) Backend steps in order
 
 1. Create a NASA Earthdata Login; save credentials in a local, gitignored file.
 2. On ASF Vertex: dataset NISAR, product GCOV, draw the area, choose **one track/frame**,

@@ -53,6 +53,17 @@ class SiteService:
             )
         return path
 
+    def site_file(self, site_id: str, relative: str) -> Path:
+        self.get_site(site_id)
+        path = self._repository.site_file(site_id, relative)
+        if path is None:
+            raise NotFoundError(
+                ErrorCode.FILE_NOT_FOUND,
+                f"No file '{relative}' for site '{site_id}'.",
+                {"site_id": site_id, "path": relative},
+            )
+        return path
+
     def change_png(
         self, site_id: str, date_from: dt.date, date_to: dt.date, polarization: Polarization
     ) -> bytes:

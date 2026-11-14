@@ -322,7 +322,8 @@ uv run pytest -m "not slow"               # fast lane (scope to touched feature 
 uv run --group pipeline pytest            # full suite — required before done (the plain `uv run pytest` skips the pipeline tests)
 uv run python -m app.export_openapi       # regenerate contracts/openapi.json after any API change
 uv run python -m pipeline.make_demo_site  # synthetic demo site → data/derived/demo-reservoir/
-uv run python -m pipeline.prepare_nisar   # real NISAR → same files (TODO(nisar-pipeline))
+uv run python -m pipeline.prepare_nisar   # real NISAR → same files
+uv run python -m pipeline.export_static   # prepared sites → web/public/data/ (what the deployed web reads)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 
 # web/

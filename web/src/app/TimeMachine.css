@@ -59,3 +59,25 @@
     height: 62vh;
   }
 }
+
+.explorer__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.explorer__field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+.listen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.listen__caption {
+  font-size: 12px;
+}

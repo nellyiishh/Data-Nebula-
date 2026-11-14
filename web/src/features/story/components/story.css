@@ -102,3 +102,80 @@
   padding: 2px var(--space-2) 2px 0;
   border-bottom: 1px solid var(--border);
 }
+
+.vs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.vs-table th,
+.vs-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.vs-table thead th {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+.bands {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.bands caption {
+  text-align: left;
+  font-size: 12px;
+  margin-bottom: var(--space-2);
+}
+.bands th,
+.bands td {
+  text-align: left;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.bands__sat {
+  display: block;
+  font-size: 11px;
+}
+.bands__nisar {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.bands__depth {
+  width: 30%;
+}
+.bands__depth span {
+  display: block;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--hv), var(--accent));
+}
+.not-list {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--text-muted);
+}
+.stretch-demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+  margin: 0;
+}
+.stretch-demo figure {
+  margin: 0;
+}
+.stretch-demo img {
+  width: 100%;
+  aspect-ratio: 1;
+  display: block;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.stretch-demo figcaption {
+  font-size: 12px;
+  color: var(--text-muted);
+}

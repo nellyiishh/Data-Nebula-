@@ -13,21 +13,22 @@ npm run dev          # http://localhost:5173 (needs a browser with WebGL2 for th
 
 Before pushing: `npm run lint && npm run build` (both must pass with zero warnings).
 
-## The page (8 screens, one scroll)
+## The page (9 screens, one scroll)
 
 | # | Screen | Where |
 |---|---|---|
-| 1 | Hero: map + tagline | `src/app/SitePage.tsx` |
-| 2 | Place and facts with sources | `src/app/SitePage.tsx` |
-| 3 | Rain: IMERG bars + NISAR passes + event line | `src/features/timeline/RainTimeline.tsx` |
-| 4 | Radar hears it: layers, before/after, radar vs photo, overlays | `src/app/Explorer.tsx` |
-| 5 | Tracking: Play through every pass, point chart (HH/HV, coherence, LOS) | `src/app/Explorer.tsx` |
-| 6 | Who lives below: buildings/roads + counts | `src/features/exposure/` |
-| 7 | Same tool, any slope: site switcher | `src/app/SitePage.tsx` |
-| 8 | What we know and don't: validation, limits, methods, datasets, AI use | `src/features/story/DataLimits.tsx` |
+| 01 | Hero: Earth map + mission | `src/app/SitePage.tsx` |
+| 02 | Explore: pick a place, event and facts with sources | `src/app/SitePage.tsx` |
+| 03 | Earth Time Machine: Play through every NISAR pass (HH/HV, change, coherence, LOS), rain + passes timeline, point chart, **Listen to Earth**, 3D terrain, compare two dates, contrast stretch (Research) | `src/app/TimeMachine.tsx` |
+| 04 | Radar Vision: camera ↔ radar slider, what radar is/isn't, band guide (X/C/S/L), raw vs stretched | `src/app/RadarVision.tsx` |
+| 05 | Rainfall connection: IMERG bars + 30-day totals | `src/features/timeline/` |
+| 06 | Earth impact: buildings/roads, registered events, report button | `src/features/exposure/` |
+| 07 | Global stories: same template for every region | `src/app/SitePage.tsx` |
+| 08 | Investigation report: preview + printable PDF | `src/features/report/` |
+| 09 | Data & science: validation, limits, methods, datasets, AI use | `src/features/story/DataLimits.tsx` |
 
 - **Explore / Research** toggle in the header: every screen has a plain and a detailed text.
-- **The URL keeps the view** (`?site, layer, f, swipe, a, b, ov, pt, mode`), so a link opens the same frame.
+- **The URL keeps the view** (`?site, layer, f, cmp, a, b, ov, pt, op, t3d, ct, mode`), so a link opens the same frame.
 - **Field brief**: `?site=<id>&view=brief` → printable page (browser Print → Save as PDF).
 
 ## Where data comes from
@@ -66,6 +67,8 @@ All paths are relative to `sites/{id}/`. Every raster shares the site's `corners
 | `exposure` `{radius_km, buildings, roads_km, nearest_settlement, distance_km, method, source}` | Counts for screen 6 | exposure |
 | `validation` `{threshold_db, pair, changed_inside_pct, changed_outside_pct, method}` | Radar vs optical scar check | captain |
 | `limitations[]` | Site-specific limits | captain |
+| `catalog[]` `{date, type, name, source}` | Registered events near the site (NASA Global Landslide Catalog / COOLR) | rain/exposure |
+| `raw_example` `{linear, db, date}` | One date as raw power and as stretched dB (Radar Vision) | NISAR |
 
 Open `public/data/sites/togus-bulak.json` for a complete example.
 
@@ -73,12 +76,14 @@ Open `public/data/sites/togus-bulak.json` for a complete example.
 
 | Folder | Owner | What is there |
 |---|---|---|
-| `src/app/` | map lead | Page composition, explorer state, field brief |
+| `src/app/` | map lead | Page composition, Time Machine and Radar Vision state, print page |
 | `src/core/map/` | map lead | `SarMap` (MapLibre: raster, overlays, GeoJSON, markers), preloading |
 | `src/features/timeline/` | map lead | `FrameSlider` (Play), `RainTimeline` |
 | `src/features/compare/` | compare | `SwipeCompare`, `LayerControls`, `Legend`, overlay colours |
 | `src/features/chart/` | chart | `TimeChart` (one SVG time axis for all charts), `PointPanel` |
-| `src/features/exposure/` | story/design | `ExposureCard` |
+| `src/features/exposure/` | story/design | `ExposureCard`, `EventCatalog` |
+| `src/features/report/` | captain | `ReportBody` (on-page preview and print) |
+| `src/features/listen/` | chart | Sonification: `useSonification`, `ListenButton` |
 | `src/features/story/` | story + captain | `Screen`, `DataLimits`, `content.ts` (datasets, methods, AI use) |
 | `src/core/theme/tokens.css` | story/design | Colours, spacing, fonts — variables only, no raw hex in features |
 | `src/features/sites/` | shared | Contract types, `slope_echo` types, data hooks, `layers.ts` (one model for all rasters) |

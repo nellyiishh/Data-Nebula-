@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Loadable } from '../../../core/api/useJson'
 import type { LayerView } from '../../sites/model/layers'
 import type { PointExtras, PointOfInterest, PointTimeseries } from '../../sites/model/types'
@@ -20,6 +21,8 @@ interface Props {
   selectedId?: string
   pointLabel?: string
   onSelect: (p: PointOfInterest) => void
+  /** Extra UI under the chart for the main line (e.g. sonification), composed by the app. */
+  renderExtra?: (line: TimeLine) => ReactNode
 }
 
 function linesFor(p: Props): { lines: TimeLine[]; unit: string } | { message: string; error?: boolean } {
@@ -75,6 +78,7 @@ export function PointPanel(p: Props) {
             ))}
             {p.pointLabel && <span>· {p.pointLabel}</span>}
           </div>
+          {p.renderExtra?.(res.lines[0])}
         </>
       ) : (
         <p className={`state-msg${res.error ? ' error' : ''}`}>{res.message}</p>

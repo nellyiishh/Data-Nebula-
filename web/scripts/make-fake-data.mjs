@@ -201,6 +201,12 @@ for (const [from, to] of pairs(SITE.dates)) {
     return t < 0 ? [230, 60, 50, -t * 230] : [50, 110, 240, t * 230]
   }))
 }
+// "Raw" linear power for one date: what a SAR image looks like before dB + stretching (mostly black).
+const lastDate = SITE.dates[SITE.dates.length - 1]
+write(`${base}/ext/raw/${lastDate}_linear.png`, png((x, y) => {
+  const v = byte(10 ** (backscatter(x, y, lastDate).hh / 10), 0, 1.6)
+  return [v, v, v, 255]
+}))
 write(`${base}/ext/radar_blind.png`, png((x, y) => (inBlind(x, y) ? [120, 120, 130, 200] : null)))
 
 // ---- Point series ----------------------------------------------------------------------
@@ -295,6 +301,7 @@ const src = {
   imerg: { name: 'GPM IMERG Late daily, NASA GES DISC', url: 'https://gpm.nasa.gov/data/imerg' },
   optical: { name: 'Sentinel-2 / HLS optical', url: 'https://hls.gsfc.nasa.gov/' },
   osm: { name: '© OpenStreetMap contributors', url: 'https://www.openstreetmap.org/copyright' },
+  coolr: { name: 'NASA COOLR / Global Landslide Catalog', url: 'https://landslides.nasa.gov/' },
   todo: { name: 'TODO(source): add the news or agency link' },
 }
 const pairFrames = (dir) => pairs(SITE.dates).map(([from, to]) => ({ from, to, file: `ext/${dir}/${from}_${to}.png` }))
@@ -369,6 +376,13 @@ const siteDetail = {
       { id: 'exposure', kind: 'exposure', title: 'Buildings and roads', file: 'ext/exposure.geojson', description: 'From OpenStreetMap.', source: src.osm },
       { id: 'aoi', kind: 'outline', title: '2 km radius', file: 'ext/aoi.geojson', description: 'Radius used for the exposure counts.', source: src.osm },
     ],
+    // Registered events near the site (NASA Global Landslide Catalog / COOLR style). FAKE examples.
+    catalog: [
+      { date: '2026-10-10', type: 'landslide', name: 'Togus-Bulak slope failure', source: src.todo },
+      { date: '2024-04-18', type: 'mudflow', name: 'Mudflow in the same valley (demo)', source: src.coolr },
+      { date: '2021-05-02', type: 'landslide', name: 'Road cut collapse 3 km downstream (demo)', source: src.coolr },
+    ],
+    raw_example: { linear: `ext/raw/${lastDate}_linear.png`, db: `layers/hh/${lastDate}.png`, date: lastDate },
     rain: { file: 'ext/rain.json', source: src.imerg, note: 'IMERG pixel ~10 km: regional rain, not rain on the slope.' },
     point_extras: Object.fromEntries(POIS.map((p) => [p.id, `ext/points/${p.id}.json`])),
     exposure: {

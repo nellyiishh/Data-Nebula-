@@ -102,6 +102,10 @@ export interface SlopeEcho {
   layers: ExtLayer[]
   overlays: ExtOverlay[]
   rain: { file: string; source: SourceRef; note: string } | null
+  /** Registered natural events near the site (e.g. NASA Global Landslide Catalog). */
+  catalog?: { date: string; type: string; name: string; source: SourceRef }[]
+  /** One date as raw linear power and as stretched dB, for the "why stretch" explainer. */
+  raw_example?: { linear: string; db: string; date: string }
   /** poi id → file with per-pair coherence and cumulative LOS displacement */
   point_extras: Record<string, string>
   exposure: {

@@ -2,9 +2,7 @@ import type { LayerView } from '../../sites/model/layers'
 import type { ExtOverlay } from '../../sites/model/types'
 import './LayerControls.css'
 
-// Owner: Frontend 2 (compare). Layer switch, opacity, swipe mode, overlay toggles.
-
-export type SwipeMode = 'off' | 'dates' | 'optical'
+// Owner: Frontend 2 (compare). Layer switch, opacity, overlay toggles.
 
 interface Props {
   layers: LayerView[]
@@ -12,9 +10,6 @@ interface Props {
   onLayer: (id: string) => void
   opacity: number
   onOpacity: (v: number) => void
-  swipe: SwipeMode
-  onSwipe: (m: SwipeMode) => void
-  hasOptical: boolean
   overlays: ExtOverlay[]
   shownOverlays: string[]
   onToggleOverlay: (id: string) => void
@@ -58,20 +53,6 @@ export function LayerControls(p: Props) {
         Opacity
         <input type="range" min={0} max={1} step={0.05} value={p.opacity} onChange={(e) => p.onOpacity(Number(e.target.value))} />
       </label>
-
-      <div className="layer-controls__row" role="group" aria-label="Compare mode">
-        <button type="button" className="btn" aria-pressed={p.swipe === 'off'} onClick={() => p.onSwipe('off')}>
-          Single
-        </button>
-        <button type="button" className="btn" aria-pressed={p.swipe === 'dates'} onClick={() => p.onSwipe('dates')}>
-          Before / after
-        </button>
-        {p.hasOptical && (
-          <button type="button" className="btn" aria-pressed={p.swipe === 'optical'} onClick={() => p.onSwipe('optical')}>
-            Radar vs photo
-          </button>
-        )}
-      </div>
 
       {p.overlays.length > 0 && (
         <fieldset className="layer-controls__overlays">

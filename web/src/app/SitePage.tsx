@@ -1,19 +1,26 @@
+import { useState } from 'react'
+import { paths } from '../core/api/client'
 import { SarMap } from '../core/map/SarMap'
 import type { Corners } from '../core/map/SarMap'
+import { LazyMount } from '../core/ui/LazyMount'
+import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
-import { paths } from '../core/api/client'
+import { ReportBody } from '../features/report/components/ReportBody'
 import { useRain } from '../features/sites/api'
 import type { SiteDetail, SiteSummary } from '../features/sites/model/types'
 import { DataLimits } from '../features/story/components/DataLimits'
 import { Screen, SourceLink } from '../features/story/components/Screen'
 import { PROJECT } from '../features/story/content'
 import { RainTimeline } from '../features/timeline/components/RainTimeline'
-import { Explorer } from './Explorer'
+import { rainBefore } from '../features/timeline/lib/rain'
+import { RadarVision } from './RadarVision'
+import { TimeMachine } from './TimeMachine'
 import { toMapOverlays } from './mapOverlays'
 import './SitePage.css'
 
-// Composition root for one site: the 8-screen story. Features never import each other's
-// components; they meet here. App mounts it with key={site.id}.
+// Composition root for one site: the 9-screen story agreed by the team
+// (Hero, Explore, Earth Time Machine, Radar Vision, Rainfall, Earth Impact, Global Stories,
+// Investigation Report, Data & Science). App mounts it with key={site.id}.
 
 type Params = Record<string, string | undefined>
 interface Props {
@@ -26,61 +33,77 @@ interface Props {
 
 function around([lon, lat]: [number, number], d: number): Corners {
   return [
-    [lon - d, lat + d * 0.7],
-    [lon + d, lat + d * 0.7],
-    [lon + d, lat - d * 0.7],
-    [lon - d, lat - d * 0.7],
+    [lon - d, lat + d * 0.6],
+    [lon + d, lat + d * 0.6],
+    [lon + d, lat - d * 0.6],
+    [lon - d, lat - d * 0.6],
   ]
 }
 
 export function SitePage({ site, sites, research, params, setParams }: Props) {
   const se = site.slope_echo
   const rain = useRain(site)
-  const exposureOverlays = se ? toMapOverlays(site, se.overlays.filter((o) => ['exposure', 'aoi', 'scar'].includes(o.id))) : null
+  const [generated] = useState(() => new Date().toISOString().slice(0, 10))
+  const impactOverlays = se ? toMapOverlays(site, se.overlays.filter((o) => ['exposure', 'aoi', 'scar'].includes(o.id))) : null
   const last = site.dates[site.dates.length - 1]
+  const r30 = rain.status === 'ready' && se ? rainBefore(rain.data, se.event.date) : null
+  const pickSite = (id: string) => {
+    setParams({ site: id, layer: undefined, f: undefined, pt: undefined, a: undefined, b: undefined })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className="site-page">
-      {/* 1 · Hero */}
+      {/* 01 · Hero */}
       <section className="hero" aria-labelledby="hero-title">
         <div className="hero__map">
           <SarMap
-            corners={around(site.center, 2.5)}
+            corners={around(site.center, 14)}
             interactive={false}
             showControls={false}
             markers={sites.map((s) => ({ id: s.id, lon: s.center[0], lat: s.center[1], label: s.name }))}
-            onMarkerClick={(id) => setParams({ site: id })}
+            onMarkerClick={pickSite}
             padding={0}
           />
         </div>
         <div className="hero__text">
-          <p className="hero__kicker">
-            {PROJECT.name} · NISAR radar · {se ? `${se.region}, ${se.country}` : site.name}
-          </p>
+          <p className="hero__kicker">{PROJECT.name} · NASA-ISRO NISAR radar</p>
           <h1 id="hero-title">{PROJECT.tagline}</h1>
-          <p className="hero__lede">
-            {se
-              ? `${se.event.date}: ${se.event.label}. Follow the rain, the radar and the people below the slope.`
-              : site.name}
-          </p>
+          <p className="hero__lede">{PROJECT.mission}</p>
           <div className="hero__cta">
-            <a className="btn btn--primary" href="#radar">
-              See what the radar saw
+            <a className="btn btn--primary" href="#time-machine">
+              Start the Time Machine
             </a>
-            <a className="btn" href="#data">
-              What we know and don't
+            <a className="btn" href="#explore">
+              Choose a place
             </a>
           </div>
         </div>
       </section>
 
-      {/* 2 · Place */}
-      <Screen id="place" n={2} title={se ? `${site.name}` : 'The place'} text={se?.story.place} research={research}>
-        {se ? (
+      {/* 02 · Explore */}
+      <Screen id="explore" n={2} title="Explore a place" text={se?.story.place} research={research}>
+        <ul className="site-cards">
+          {sites.map((s) => (
+            <li key={s.id}>
+              <button type="button" className="panel site-card" aria-pressed={s.id === site.id} onClick={() => pickSite(s.id)}>
+                <strong>{s.name}</strong>
+                <span className="muted">
+                  {s.change_type}
+                  {s.source === 'demo' ? ' · demo data' : ''}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        {se && (
           <ul className="facts">
             <li className="panel event-card">
               <strong>{se.event.date}</strong>
               <span>{se.event.label}</span>
+              <span className="muted">
+                {se.region}, {se.country}
+              </span>
               <SourceLink source={se.event.source} />
             </li>
             {se.facts.map((f) => (
@@ -90,13 +113,17 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="state-msg">No story for this site yet.</p>
         )}
       </Screen>
 
-      {/* 3 · Rain */}
-      <Screen id="rain" n={3} title="Rain loads it" text={se?.story.rain} research={research}>
+      {/* 03 · Earth Time Machine */}
+      <TimeMachine site={site} research={research} params={params} setParams={setParams} />
+
+      {/* 04 · Radar Vision */}
+      <RadarVision site={site} research={research} />
+
+      {/* 05 · Rainfall */}
+      <Screen id="rain" n={5} title="Rainfall connection" text={se?.story.rain} research={research}>
         <div className="panel">
           <RainTimeline rain={rain} passes={site.dates} event={se ? { date: se.event.date, label: se.event.label } : undefined} />
           {se?.rain && (
@@ -105,72 +132,99 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
             </p>
           )}
         </div>
+        {r30 && (
+          <div className="rain-stats">
+            <div className="panel">
+              <strong>{r30.total.toFixed(0)} mm</strong>
+              <span className="muted">in the {r30.days} days before the event</span>
+            </div>
+            <div className="panel">
+              <strong>{r30.peak.toFixed(0)} mm</strong>
+              <span className="muted">wettest single day</span>
+            </div>
+            <div className="panel">
+              <strong>{r30.wetDays}</strong>
+              <span className="muted">days with rain</span>
+            </div>
+          </div>
+        )}
+        <p className="muted site-page__note">
+          Rain coming before a slide does not prove it caused it; it is one of the drivers we compare with the radar.
+        </p>
       </Screen>
 
-      {/* 4 + 5 · Radar and tracking */}
-      <Explorer site={site} research={research} params={params} setParams={setParams} />
-
-      {/* 6 · Exposure */}
-      <Screen id="exposure" n={6} title="People live below it" text={se?.story.exposure} research={research}>
-        <div className="exposure-screen">
-          <div className="exposure-screen__map">
+      {/* 06 · Earth Impact */}
+      <Screen id="impact" n={6} title="Earth impact" text={se?.story.exposure} research={research}>
+        <div className="impact">
+          <LazyMount className="impact__map">
             <SarMap
               corners={site.corners}
               imageUrl={last ? paths.layer(site.id, 'hh', last) : null}
               imageOpacity={0.45}
-              vectors={exposureOverlays?.vectors}
+              vectors={impactOverlays?.vectors}
               badge={last ? `HH · ${last}${site.source === 'demo' ? ' · DEMO' : ''}` : undefined}
             />
-          </div>
-          <div className="panel">
-            <ExposureCard exposure={se?.exposure ?? null} research={research} />
+          </LazyMount>
+          <div className="impact__side">
+            <section className="panel">
+              <h3>Near the slope</h3>
+              <ExposureCard exposure={se?.exposure ?? null} research={research} />
+            </section>
+            <section className="panel">
+              <h3>Registered events</h3>
+              <EventCatalog catalog={se?.catalog} />
+            </section>
+            <a className="btn btn--primary" href="#report">
+              Generate investigation report
+            </a>
           </div>
         </div>
       </Screen>
 
-      {/* 7 · Around the world */}
-      <Screen id="world" n={7} title="Same tool, any slope" research={research}>
+      {/* 07 · Global Stories */}
+      <Screen id="stories" n={7} title="Global stories" research={research}>
         <p className="screen__text">
-          Every site uses the same template: add its files and one entry in the data, and this page works for it. We
-          start with Kyrgyzstan.
+          One method, many slopes. Each place uses the same template, so a new region is new data, not new code. We start
+          with Kyrgyzstan.
         </p>
         <ul className="site-cards">
           {sites.map((s) => (
             <li key={s.id}>
-              <button
-                type="button"
-                className="panel site-card"
-                aria-pressed={s.id === site.id}
-                onClick={() => {
-                  setParams({ site: s.id, layer: undefined, f: undefined, pt: undefined, a: undefined, b: undefined })
-                  window.scrollTo({ top: 0, behavior: 'smooth' })
-                }}
-              >
+              <button type="button" className="panel site-card" aria-pressed={s.id === site.id} onClick={() => pickSite(s.id)}>
                 <strong>{s.name}</strong>
                 <span className="muted">
-                  {s.change_type}
-                  {s.source === 'demo' ? ' · demo data' : ''}
+                  {s.change_type} · {s.center[1].toFixed(2)}°, {s.center[0].toFixed(2)}°{s.source === 'demo' ? ' · demo data' : ''}
                 </span>
               </button>
             </li>
           ))}
           {sites.length < 2 && (
             <li className="panel site-card site-card--next">
-              <strong>Next region</strong>
-              <span className="muted">Being checked against NISAR coverage.</span>
+              <strong>Second region</strong>
+              <span className="muted">Being checked against NISAR coverage. Same screens, different slope.</span>
             </li>
           )}
         </ul>
       </Screen>
 
-      {/* 8 · Data and limits */}
-      <Screen id="data" n={8} title="What we know and what we don't" research={research}>
-        <DataLimits site={site} research={research} />
+      {/* 08 · Investigation Report */}
+      <Screen id="report" n={8} title="Investigation report" research={research}>
+        <p className="screen__text">
+          Everything above on one page, with dates, sources and limits. Hand it to a geologist or save it as PDF.
+        </p>
+        <div className="panel">
+          <ReportBody site={site} rain={rain} generated={generated} compact />
+        </div>
         <p>
-          <a className="btn" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
-            Open field brief (print / PDF)
+          <a className="btn btn--primary" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+            Generate full report (print / PDF)
           </a>
         </p>
+      </Screen>
+
+      {/* 09 · Data & Science */}
+      <Screen id="data" n={9} title="Data & science" research={research}>
+        <DataLimits site={site} research={research} />
       </Screen>
     </div>
   )

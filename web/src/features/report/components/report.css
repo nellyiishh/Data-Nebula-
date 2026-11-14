@@ -11,22 +11,22 @@
 .brief__actions a.btn {
   text-decoration: none;
 }
-.brief__demo {
+.report__demo {
   border: 2px solid var(--accent-2);
   color: var(--accent-2);
   padding: var(--space-2) var(--space-3);
   font-weight: 600;
 }
-.brief__kicker {
+.report__kicker {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--text-muted);
   margin: 0;
 }
-.brief h1 {
+.report__title {
   margin: var(--space-1) 0;
 }
-.brief h2 {
+.report h4 {
   font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -34,29 +34,29 @@
   padding-bottom: var(--space-1);
   margin-top: var(--space-6);
 }
-.brief table {
+.report table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
-.brief th,
-.brief td {
+.report th,
+.report td {
   text-align: left;
   border-bottom: 1px solid var(--border);
   padding: var(--space-1) var(--space-2) var(--space-1) 0;
 }
-.brief__fig {
+.report__fig {
   margin: var(--space-3) 0;
 }
-.brief__fig img {
+.report__fig img {
   width: 260px;
   height: 260px;
   image-rendering: pixelated;
   background: #000;
   border: 1px solid var(--border);
 }
-.brief__fig figcaption,
-.brief__small {
+.report__fig figcaption,
+.report__small {
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -79,11 +79,20 @@
   .brief {
     padding: 0;
   }
-  .brief section {
+  .report section {
     break-inside: avoid;
   }
-  .brief__fig img {
+  .report__fig img {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+}
+.report--compact {
+  font-size: 13px;
+}
+.report--compact h4 {
+  margin-top: var(--space-3);
+}
+.report ul {
+  padding-left: 1.2em;
 }

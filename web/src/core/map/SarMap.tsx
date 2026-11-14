@@ -45,6 +45,39 @@ export interface SarMapProps {
   showControls?: boolean
   interactive?: boolean
   padding?: number
+  /** Drape everything on a 3D elevation model (DEM), tilted. */
+  terrain?: boolean
+  /** Contrast stretch for the main raster, −1…1 (0 = as delivered). */
+  contrast?: number
+}
+
+// Open elevation tiles (AWS Open Data "Terrain Tiles", terrarium encoding, no key).
+// Elevation comes from a DEM (SRTM and others), not from the radar image.
+const DEM_SOURCE = {
+  type: 'raster-dem' as const,
+  tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+  encoding: 'terrarium' as const,
+  tileSize: 256,
+  maxzoom: 14,
+  attribution: 'Elevation: <a href="https://registry.opendata.aws/terrain-tiles/">AWS Terrain Tiles</a> (SRTM and others)',
+}
+
+function setTerrain(map: MapLibreMap, on: boolean) {
+  if (on) {
+    if (!map.getSource('dem')) map.addSource('dem', DEM_SOURCE)
+    if (!map.getLayer('hillshade'))
+      // Above the basemap, below the radar image.
+      map.addLayer(
+        { id: 'hillshade', type: 'hillshade', source: 'dem', paint: { 'hillshade-exaggeration': 0.4 } },
+        map.getLayer('sar') ? 'sar' : undefined,
+      )
+    map.setTerrain({ source: 'dem', exaggeration: 1.6 })
+    map.easeTo({ pitch: 62, bearing: -20, duration: 900 })
+  } else {
+    map.setTerrain(null)
+    if (map.getLayer('hillshade')) map.removeLayer('hillshade')
+    map.easeTo({ pitch: 0, bearing: 0, duration: 600 })
+  }
 }
 
 const BASEMAP: MapOptions['style'] = {
@@ -136,6 +169,8 @@ export function SarMap({
   showControls = true,
   interactive = true,
   padding = 40,
+  terrain = false,
+  contrast = 0,
 }: SarMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -192,6 +227,20 @@ export function SarMap({
     if (ready) setImage(mapRef.current!, 'sar', imageUrl, corners, imageOpacity)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, imageUrl, imageOpacity, cornersKey])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (ready && map?.getLayer('sar')) map.setPaintProperty('sar', 'raster-contrast', contrast)
+  }, [ready, contrast, imageUrl])
+
+  const firstTerrainRun = useRef(true)
+  useEffect(() => {
+    if (!ready) return
+    // Skip the initial "off" so a flat map does not animate on load.
+    if (firstTerrainRun.current && !terrain) return
+    firstTerrainRun.current = false
+    setTerrain(mapRef.current!, terrain)
+  }, [ready, terrain])
 
   const imagesKey = JSON.stringify(images)
   const shownImages = useRef<string[]>([])

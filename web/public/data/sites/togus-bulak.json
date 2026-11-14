@@ -372,6 +372,39 @@
         }
       }
     ],
+    "catalog": [
+      {
+        "date": "2026-10-10",
+        "type": "landslide",
+        "name": "Togus-Bulak slope failure",
+        "source": {
+          "name": "TODO(source): add the news or agency link"
+        }
+      },
+      {
+        "date": "2024-04-18",
+        "type": "mudflow",
+        "name": "Mudflow in the same valley (demo)",
+        "source": {
+          "name": "NASA COOLR / Global Landslide Catalog",
+          "url": "https://landslides.nasa.gov/"
+        }
+      },
+      {
+        "date": "2021-05-02",
+        "type": "landslide",
+        "name": "Road cut collapse 3 km downstream (demo)",
+        "source": {
+          "name": "NASA COOLR / Global Landslide Catalog",
+          "url": "https://landslides.nasa.gov/"
+        }
+      }
+    ],
+    "raw_example": {
+      "linear": "ext/raw/2026-11-03_linear.png",
+      "db": "layers/hh/2026-11-03.png",
+      "date": "2026-11-03"
+    },
     "rain": {
       "file": "ext/rain.json",
       "source": {

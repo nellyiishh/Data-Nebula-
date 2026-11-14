@@ -22,3 +22,6 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Event facts | `TODO(source)` | Links for 42.8k m³, 348 mudflows, ADB atlas still missing. |
 | Site location | `TODO(site)` | Togus-Bulak centre is an approximate placeholder. |
 | Team / AI-use text | `TODO(team)` | `web/src/features/story/content.ts`. |
+| Registered events (`catalog`) | **Demo** | Two of three entries are invented; replace with NASA COOLR / Global Landslide Catalog rows. |
+| 3D terrain | External tiles | AWS Open Data Terrain Tiles (terrarium), no key. Not checked in a WebGL browser yet. |
+| Listen to Earth | Wired (client only) | Web Audio; pitch follows the selected point's series, silence = missing value. |

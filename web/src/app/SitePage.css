@@ -61,13 +61,13 @@ a.btn {
   margin: var(--space-2) 0 0;
 }
 
-.exposure-screen {
+.impact {
   display: grid;
   grid-template-columns: 1.6fr 1fr;
   gap: var(--space-3);
   align-items: start;
 }
-.exposure-screen__map {
+.impact__map {
   position: relative;
   height: 420px;
   border-radius: var(--radius);
@@ -100,7 +100,7 @@ a.btn {
 }
 
 @media (max-width: 900px) {
-  .exposure-screen {
+  .impact {
     grid-template-columns: 1fr;
   }
 }
@@ -108,4 +108,29 @@ a.btn {
 /* The hero map is decoration; if WebGL is missing, the error would cover the headline. */
 .hero__map .sar-map__error {
   display: none;
+}
+
+.impact__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.impact__side > .btn {
+  text-align: center;
+}
+.rain-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+.rain-stats .panel {
+  display: flex;
+  flex-direction: column;
+}
+.rain-stats strong {
+  font-size: 26px;
+  color: var(--rain);
+}
+.site-cards + .facts {
+  margin-top: var(--space-2);
 }

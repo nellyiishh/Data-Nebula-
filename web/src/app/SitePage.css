@@ -7,7 +7,8 @@
 
 .hero__text {
   position: relative;
-  padding: var(--space-6) var(--space-4) calc(var(--space-6) * 2);
+  /* Generous bottom air so the block sits on the foothills, not on the page edge. */
+  padding: var(--space-6) var(--space-4) clamp(64px, 11vh, 120px);
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
@@ -16,35 +17,88 @@
 .hero__text a {
   pointer-events: auto;
 }
+
+/* Engineering label: hairline, mono, wide tracking, small caps-like size. */
 .hero__kicker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 22px;
   font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--accent-2);
-  margin: 0 0 var(--space-2);
-  font-size: 12px;
 }
-.hero h1 {
-  font-size: clamp(30px, 6vw, 64px);
-  line-height: 1.05;
-  margin: 0 0 var(--space-3);
-  max-width: 16ch;
+.hero__kicker-rule {
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.7;
+}
+.hero__kicker-id {
+  padding: 2px 7px 2px 9px; /* the extra left pad balances the trailing letter-spacing */
+  border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 3px;
+}
+.hero__kicker-sep {
+  opacity: 0.55;
+  letter-spacing: 0;
+}
+
+/* Editorial headline: tight leading, optical tracking, weight contrast between lines. */
+.hero__title {
+  margin: 0 0 28px;
+  max-width: 17ch;
+  font-size: clamp(38px, 6.6vw, 82px);
+  line-height: 0.98;
+  letter-spacing: -0.028em;
+  font-feature-settings: 'ss01', 'cv11'; /* Inter: open digits, single-storey a */
+  text-wrap: balance;
+}
+.hero__line {
+  display: block;
+}
+.hero__line--1,
+.hero__line--2 {
+  font-weight: 300;
+  letter-spacing: -0.022em;
+}
+.hero__line--3 {
+  font-weight: 650;
+  letter-spacing: -0.034em;
+  margin-top: 0.06em;
 }
 .hero__lede {
-  font-size: 18px;
+  font-size: clamp(16px, 1.35vw, 19px);
+  line-height: 1.6;
   color: var(--text-muted);
-  max-width: 60ch;
-  margin: 0 0 var(--space-4);
+  max-width: 54ch;
+  margin: 0 0 36px;
+  text-wrap: pretty;
 }
 .hero__cta {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
+  gap: 12px;
+}
+/* Secondary buttons sit on the mountains: a little glass so the ridge lines do not cut through the label. */
+.hero__cta .btn:not(.btn--primary) {
+  background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+  backdrop-filter: blur(6px);
 }
 
 
 a.btn {
   text-decoration: none;
-  display: inline-block;
-  padding: var(--space-2) var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-4) 0 calc(var(--space-4) + 2px);
+  font-weight: 500;
 }
 
 .site-page__note {

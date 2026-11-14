@@ -1,6 +1,6 @@
 // Single place that knows where data comes from.
 // - VITE_API_URL set   → the FastAPI backend (contracts/openapi.json).
-// - VITE_API_URL empty → static files in public/data/ (fake data now, backend export later).
+// - VITE_API_URL empty → static files at /data (the backend export in ../data/web/).
 // The static layout mirrors the API paths, except the two query endpoints, which fall back
 // to pre-computed files (change/{from}_{to}.png, points/{poi_id}.json).
 

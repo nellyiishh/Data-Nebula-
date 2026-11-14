@@ -22,6 +22,9 @@ import './SitePage.css'
 // (Hero, Explore, Earth Time Machine, Radar Vision, Rainfall, Earth Impact, Global Stories,
 // Investigation Report, Data & Science). App mounts it with key={site.id}.
 
+// "Rain loads it. Radar hears it. People live below it." → one line per sentence.
+const taglineLines = PROJECT.tagline.split(/(?<=\.)\s+/)
+
 type Params = Record<string, string | undefined>
 interface Props {
   site: SiteDetail
@@ -49,8 +52,22 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
       <section className="hero" aria-labelledby="hero-title">
         <HeroBackdrop />
         <div className="hero__text">
-          <p className="hero__kicker">{PROJECT.name} · NASA-ISRO NISAR radar</p>
-          <h1 id="hero-title">{PROJECT.tagline}</h1>
+          <p className="hero__kicker">
+            <span className="hero__kicker-rule" aria-hidden="true" />
+            <span className="hero__kicker-id">{PROJECT.name}</span>
+            <span className="hero__kicker-sep" aria-hidden="true">
+              ·
+            </span>
+            <span>NASA-ISRO NISAR radar</span>
+          </p>
+          {/* One sentence per line: two light lines build up to the bold third. */}
+          <h1 id="hero-title" className="hero__title">
+            {taglineLines.map((line, i) => (
+              <span key={line} className={`hero__line hero__line--${i + 1}`}>
+                {line}{' '}
+              </span>
+            ))}
+          </h1>
           <p className="hero__lede">{PROJECT.mission}</p>
           <div className="hero__cta">
             <a className="btn btn--primary" href={`?view=app&site=${site.id}`}>

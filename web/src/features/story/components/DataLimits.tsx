@@ -23,9 +23,10 @@ export function DataLimits({ site, research }: { site: SiteDetail; research: boo
             </div>
           </div>
           <p className="muted">
-            {research
-              ? `${v.method} Pair: ${v.pair[0]} → ${v.pair[1]}, threshold ${v.threshold_db} dB.`
-              : 'A big gap between the two numbers means the radar change really sits on the landslide, not everywhere.'}
+            A big gap between the two numbers means the radar change really sits on the landslide, not everywhere.
+          </p>
+          <p className="muted">
+            {`${v.method} Pair: ${v.pair[0]} → ${v.pair[1]}, threshold ${v.threshold_db} dB.`}
           </p>
         </div>
       )}
@@ -82,7 +83,7 @@ export function DataLimits({ site, research }: { site: SiteDetail; research: boo
                     <td>{a.date}</td>
                     <td>{a.band}</td>
                     <td>{a.polarizations.join(', ')}</td>
-                    <td>{a.granule_id ?? <span className="muted">demo — none</span>}</td>
+                    <td className="passes__granule">{a.granule_id ?? <span className="muted">demo — none</span>}</td>
                   </tr>
                 ))}
               </tbody>

@@ -102,6 +102,31 @@
   padding: 2px var(--space-2) 2px 0;
   border-bottom: 1px solid var(--border);
 }
+/* Granule IDs are ~100 characters with no spaces: let them wrap inside the panel instead of
+   pushing the page sideways; keep dates and polarisations on one line. */
+.passes {
+  table-layout: fixed;
+}
+.passes th:nth-child(1),
+.passes td:nth-child(1) {
+  width: 12.5ch;
+  white-space: nowrap;
+}
+.passes th:nth-child(2),
+.passes td:nth-child(2) {
+  width: 5ch;
+}
+.passes th:nth-child(3),
+.passes td:nth-child(3) {
+  width: 7ch;
+  white-space: nowrap;
+}
+.passes__granule {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+  font-size: 11px;
+  color: var(--text-muted);
+}
 
 .vs-table {
   width: 100%;

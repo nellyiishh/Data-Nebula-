@@ -38,6 +38,7 @@ from app.features.sites.schemas import (
 )
 from app.features.sites.slope_echo import SlopeEcho
 from pipeline.derived import derive_slope_echo
+from pipeline.interferometry import PairLayers
 
 Cube = NDArray[np.floating]
 
@@ -65,6 +66,7 @@ def write_site(
     hv: Cube,
     bounds_merc: MercatorBounds,
     blind_mask: NDArray[np.bool_] | None = None,
+    pairs: PairLayers | None = None,
 ) -> Path:
     """hh/hv: (dates, rows, cols) in dB, NaN = no data, row 0 = north, on one shared
     EPSG:3857 grid covering bounds_merc. Replaces any earlier output for this site.
@@ -86,7 +88,14 @@ def write_site(
         shutil.copytree(meta.ext_dir, site_dir / EXT_DIR)
     if detail.slope_echo is not None:
         block = derive_slope_echo(
-            site_dir, detail.slope_echo, detail.dates, hh, bounds_merc, blind_mask
+            site_dir,
+            detail.slope_echo,
+            detail.dates,
+            hh,
+            bounds_merc,
+            blind_mask,
+            pairs=pairs,
+            points=meta.points_of_interest,
         )
         detail = detail.model_copy(update={"slope_echo": block})
     (site_dir / SITE_FILE).write_text(detail.model_dump_json(indent=2))

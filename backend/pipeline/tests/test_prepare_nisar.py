@@ -186,3 +186,65 @@ def test_a_failing_dem_download_does_not_stop_the_site(tmp_path: Path) -> None:
 
     assert (site_dir / SITE_FILE).is_file()
     assert not (site_dir / "ext" / "radar_blind.png").exists()
+
+
+def _fake_pair_cropper(epsg: int = 32635):
+    from pipeline.remote_crop import PairCrop, Raster
+
+    def cropper(granule_id: str, bbox: BBox, cache_dir: Path) -> PairCrop:
+        reference, secondary = {"P_BC": ("G_B", "G_C"), "P_CD": ("G_C", "G_D")}[granule_id]
+        coherence = Raster(
+            x=498000.0 + 20.0 * np.arange(200),
+            y=2000.0 - 20.0 * np.arange(200),
+            values=np.full((200, 200), 0.8, dtype="f4"),
+        )
+        phase = Raster(
+            x=498000.0 + 80.0 * np.arange(50),
+            y=2000.0 - 80.0 * np.arange(50),
+            values=np.zeros((50, 50), dtype="f4"),
+        )
+        return PairCrop(
+            granule_id, ACQUIRED[reference], ACQUIRED[secondary], epsg, 0.2384, coherence, phase
+        )
+
+    return cropper
+
+
+def test_landslide_site_gets_coherence_and_motion_from_pairs(tmp_path: Path) -> None:
+    import json
+
+    cropper, _ = _fake_cropper()
+    site = _landslide_site(["G_B", "G_C", "G_D"]).model_copy(update={"pairs": ["P_CD", "P_BC"]})
+
+    site_dir = prepare_site(
+        site, tmp_path / "d", tmp_path / "r", cropper=cropper, pair_cropper=_fake_pair_cropper()
+    )
+
+    block = json.loads((site_dir / SITE_FILE).read_text())["slope_echo"]
+    layers = {layer["id"]: layer for layer in block["layers"]}
+    assert [f["from"] for f in layers["coherence"]["frames"]] == ["2026-10-21", "2026-11-02"]
+    assert (site_dir / layers["displacement"]["frames"][0]["file"]).is_file()
+
+
+def test_pairs_must_join_the_site_dates(tmp_path: Path) -> None:
+    cropper, _ = _fake_cropper()
+    site = _landslide_site(["G_B", "G_C"]).model_copy(update={"pairs": ["P_CD"]})  # G_D missing
+
+    with pytest.raises(ValueError, match="2026-11-14"):
+        prepare_site(
+            site, tmp_path / "d", tmp_path / "r", cropper=cropper, pair_cropper=_fake_pair_cropper()
+        )
+
+
+def test_pairs_on_another_projection_are_rejected(tmp_path: Path) -> None:
+    cropper, _ = _fake_cropper()
+    site = _landslide_site(["G_B", "G_C"]).model_copy(update={"pairs": ["P_BC"]})
+
+    with pytest.raises(ValueError, match="same track and frame"):
+        prepare_site(
+            site,
+            tmp_path / "d",
+            tmp_path / "r",
+            cropper=cropper,
+            pair_cropper=_fake_pair_cropper(epsg=32636),
+        )

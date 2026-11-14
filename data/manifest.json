@@ -77,8 +77,8 @@
             "research": "NISAR L2 GCOV, track 156 ascending, frame 022, 20 m pixels, HH and HV, provisional calibration (CRID P05023)."
           },
           "tracking": {
-            "explore": "We compare the last radar pass before the slide (29 Sep) with the first one after it (11 Oct).",
-            "research": "HH change between consecutive passes, averaged over 3×3 pixels; |ΔHH| above 3 dB is coloured."
+            "explore": "Radar compares each pass with the one 12 days before. Where the ground slid, the two no longer match (low coherence), and slow creep shows up as centimetres of motion.",
+            "research": "NISAR GUNW, 5 consecutive pairs 12 Aug – 11 Oct. Coherence at 20 m; unwrapped phase at 80 m minus the ionosphere screen, LOS = −φλ/4π (+ = toward the satellite), referenced to the site median, blank where coherence < 0.3."
           },
           "exposure": {
             "explore": "Two houses, a road, a substation and power lines are in the slide's possible path.",
@@ -95,9 +95,18 @@
           "The first pass after the slide is about 16 hours after it began; later movement is not in this stack.",
           "A ~43,000 m³ slide covers only a few hectares, a few dozen 20 m pixels at most.",
           "Provisional NISAR calibration (P05023). Validated products start 21 Oct 2026 and are not mixed in.",
-          "The village point is from OpenStreetMap; the slide outline is not mapped yet, so no validation numbers."
+          "The village point is from OpenStreetMap; the slide outline is not mapped yet, so no validation numbers.",
+          "Motion is relative to the site median and comes from 80 m phase: a slide of a few hectares is only a pixel or two, and fast motion decorrelates instead of showing as centimetres."
         ]
-      }
+      },
+      "pairs": [
+        "NISAR_L2_PR_GUNW_027_156_A_022_028_2000_SH_20260812T001558_20260812T001633_20260824T001558_20260824T001633_P05023_N_F_J_001",
+        "NISAR_L2_PR_GUNW_028_156_A_022_029_2000_SH_20260824T001558_20260824T001633_20260905T001558_20260905T001633_P05023_N_F_J_002",
+        "NISAR_L2_PR_GUNW_029_156_A_022_030_2000_SH_20260905T001558_20260905T001633_20260917T001558_20260917T001632_P05023_N_F_J_001",
+        "NISAR_L2_PR_GUNW_030_156_A_022_031_2000_SH_20260917T001558_20260917T001632_20260929T001558_20260929T001633_P05023_N_F_J_001",
+        "NISAR_L2_PR_GUNW_031_156_A_022_032_2000_SH_20260929T001558_20260929T001633_20261011T001558_20261011T001633_P05023_N_F_J_001"
+      ],
+      "pair_collection": "NISAR_L2_GUNW_PROVISIONAL_V1"
     }
   ]
 }

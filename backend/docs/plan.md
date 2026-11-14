@@ -65,7 +65,7 @@ water story; this section replaces them where they disagree.
 10. Raw linear-power example image.
 11. Radar-blind mask.
 
-**P2 — only if GUNW exists over the site**
+**P2 — GUNW exists over the site (5 pairs on track 156) — code DONE**
 12. Coherence and LOS displacement PNGs per pair + per-point `coherence` / `los_cm`.
 
 **Not backend:** rain, exposure, optical, catalog, story text. The export copies them.

@@ -286,3 +286,145 @@ def crop_granule(
     _save(path, crop)
     log.info("fetched %s %s", granule_id, {k: v.shape for k, v in crop.power.items()})
     return crop
+
+
+# ---- Interferogram pairs (GUNW) ------------------------------------------------------
+
+GUNW_SHORT_NAME = "NISAR_L2_GUNW_V1"
+GUNW_GRIDS = "/science/LSAR/GUNW/grids/frequencyA"
+WRAPPED_GROUP = f"{GUNW_GRIDS}/wrappedInterferogram/HH"  # 20 m: coherence
+UNWRAPPED_GROUP = f"{GUNW_GRIDS}/unwrappedInterferogram/HH"  # 80 m: phase
+SPEED_OF_LIGHT = 299792458.0
+
+
+@dataclass(frozen=True)
+class Raster:
+    x: Array  # column centres, metres, ascending
+    y: Array  # row centres, metres, descending
+    values: Array  # NaN = no data
+
+
+@dataclass(frozen=True)
+class PairCrop:
+    """One 12-day interferogram cropped to a bbox, both grids in one UTM CRS."""
+
+    granule_id: str
+    reference: dt.datetime  # UTC start of the earlier pass
+    secondary: dt.datetime  # UTC start of the later pass
+    epsg: int
+    wavelength_m: float
+    coherence: Raster  # 0..1, 20 m
+    # Unwrapped phase minus the ionosphere screen (radians), 80 m. NaN where unwrapping is
+    # unreliable or outside the crop's main connected component.
+    phase: Raster
+
+
+def _window_block(h5: h5py.File, group: str, name: str, bbox: BBox) -> tuple[int, Raster]:
+    epsg = int(dataset(h5, f"{group}/projection")[()])
+    x = np.asarray(dataset(h5, f"{group}/xCoordinates")[:])
+    y = np.asarray(dataset(h5, f"{group}/yCoordinates")[:])
+    window = bbox_to_window(
+        x, y, transform_bounds("EPSG:4326", f"EPSG:{epsg}", *bbox, densify_pts=21)
+    )
+    block = np.asarray(
+        dataset(h5, f"{group}/{name}")[window.r0 : window.r1, window.c0 : window.c1], dtype="f4"
+    )
+    raster = Raster(x=x[window.c0 : window.c1], y=y[window.r0 : window.r1], values=block)
+    return epsg, raster
+
+
+def _main_component(components: NDArray[np.integer]) -> NDArray[np.bool_]:
+    """Pixels of the most common reliable connected component. Each component has its own
+    unknown multiple of 2π, so only one of them can be referenced consistently."""
+    labels, counts = np.unique(components[components > 0], return_counts=True)
+    if labels.size == 0:
+        return np.zeros(components.shape, dtype=bool)
+    return components == labels[counts.argmax()]
+
+
+def read_pair_crop(h5: h5py.File, bbox: BBox) -> PairCrop:
+    """Crop a GUNW granule to a lon/lat bbox. Only the window's chunks are read."""
+    epsg, coherence = _window_block(h5, WRAPPED_GROUP, "coherenceMagnitude", bbox)
+    phase_epsg, unwrapped = _window_block(h5, UNWRAPPED_GROUP, "unwrappedPhase", bbox)
+    if phase_epsg != epsg:
+        raise ValueError(f"coherence (EPSG:{epsg}) and phase (EPSG:{phase_epsg}) grids differ")
+    _, ionosphere = _window_block(h5, UNWRAPPED_GROUP, "ionospherePhaseScreen", bbox)
+    _, components = _window_block(h5, UNWRAPPED_GROUP, "connectedComponents", bbox)
+
+    coherence.values[(coherence.values <= 0) | ~np.isfinite(coherence.values)] = np.nan
+    # MintPy treats the ionosphere screen as a correction subtracted from the phase.
+    phase = unwrapped.values - ionosphere.values
+    phase[~_main_component(components.values.astype("u4"))] = np.nan
+
+    frequency = float(dataset(h5, f"{GUNW_GRIDS}/centerFrequency")[()])
+    return PairCrop(
+        granule_id=_as_text(dataset(h5, f"{IDENTIFICATION_GROUP}/granuleId")[()]),
+        reference=_parse_utc(
+            dataset(h5, f"{IDENTIFICATION_GROUP}/referenceZeroDopplerStartTime")[()]
+        ),
+        secondary=_parse_utc(
+            dataset(h5, f"{IDENTIFICATION_GROUP}/secondaryZeroDopplerStartTime")[()]
+        ),
+        epsg=epsg,
+        wavelength_m=SPEED_OF_LIGHT / frequency,
+        coherence=coherence,
+        phase=Raster(x=unwrapped.x, y=unwrapped.y, values=phase.astype("f4")),
+    )
+
+
+def _save_pair(path: Path, crop: PairCrop) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    arrays: dict[str, Any] = {
+        "granule_id": crop.granule_id,
+        "reference": crop.reference.isoformat(),
+        "secondary": crop.secondary.isoformat(),
+        "epsg": crop.epsg,
+        "wavelength_m": crop.wavelength_m,
+    }
+    for name in ("coherence", "phase"):
+        raster: Raster = getattr(crop, name)
+        arrays.update(
+            {f"{name}_x": raster.x, f"{name}_y": raster.y, f"{name}_values": raster.values}
+        )
+    np.savez_compressed(path, **arrays)
+
+
+def _load_pair(path: Path) -> PairCrop:
+    with np.load(path) as data:
+        rasters = {
+            name: Raster(x=data[f"{name}_x"], y=data[f"{name}_y"], values=data[f"{name}_values"])
+            for name in ("coherence", "phase")
+        }
+        return PairCrop(
+            granule_id=str(data["granule_id"]),
+            reference=dt.datetime.fromisoformat(str(data["reference"])),
+            secondary=dt.datetime.fromisoformat(str(data["secondary"])),
+            epsg=int(data["epsg"]),
+            wavelength_m=float(data["wavelength_m"]),
+            **rasters,
+        )
+
+
+def crop_pair(
+    granule_id: str,
+    bbox: BBox,
+    cache_dir: Path,
+    opener: Opener | None = None,
+    collection: str = GUNW_SHORT_NAME,
+) -> PairCrop:
+    """Like crop_granule, for interferograms. Same cache rules (data/raw/<site>/, no TTL)."""
+    path = _cache_path(cache_dir, granule_id, bbox)
+    if path.is_file():
+        log.info("cache hit %s", path.name)
+        return _load_pair(path)
+    open_granule = opener or functools.partial(open_remote_granule, short_name=collection)
+    with open_granule(granule_id) as h5:
+        crop = read_pair_crop(h5, bbox)
+    _save_pair(path, crop)
+    log.info(
+        "fetched %s coherence %s phase %s",
+        granule_id,
+        crop.coherence.values.shape,
+        crop.phase.values.shape,
+    )
+    return crop

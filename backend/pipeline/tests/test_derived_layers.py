@@ -147,3 +147,86 @@ def test_blind_mask_becomes_an_overlay_and_is_left_out_of_validation(tmp_path: P
     assert isinstance(shadowed, tuple) and isinstance(visible, tuple)
     assert shadowed[3] > 0 and visible[3] == 0
     assert block["validation"]["changed_inside_pct"] == 100.0  # only column 4 counted
+
+
+# ---- Interferogram pairs ------------------------------------------------------------
+
+
+def _pair_layers():
+    from pipeline.interferometry import PairLayers
+
+    coherence = np.full((2, 10, 10), 0.9)
+    coherence[1, :, :3] = 0.1  # the second pair decorrelated over columns 0-2
+    los = np.stack([np.full((10, 10), 1.0), np.full((10, 10), 0.5)])
+    los[1, :, :3] = np.nan  # motion is blank where coherence is low
+    pairs = [(TINY_DATES[0], TINY_DATES[1]), (TINY_DATES[1], TINY_DATES[2])]
+    return PairLayers(pairs=pairs, coherence=coherence, los_cm=los)
+
+
+def _build_with_pairs(tmp_path: Path) -> Path:
+    from app.features.sites.schemas import Acquisition, PointOfInterest
+    from app.features.sites.slope_echo import SlopeEcho
+    from pipeline.writer import SiteMeta, write_site
+    from testsupport import TINY_SLIDE_ID, tiny_stack
+
+    hh, hv = tiny_stack()
+    meta = SiteMeta(
+        id=TINY_SLIDE_ID,
+        name="Tiny landslide",
+        change_type="landslide",
+        source="demo",
+        acquisitions=[
+            Acquisition(date=d, granule_id=None, band="L", polarizations=["HH"]) for d in TINY_DATES
+        ],
+        points_of_interest=[PointOfInterest(id="p1", name="Scar", lon=0.0005, lat=0.0045)],
+        attribution="test",
+        slope_echo=SlopeEcho.model_validate(tiny_slope_echo()),
+        ext_dir=write_tiny_ext(tmp_path / "ext"),
+    )
+    return write_site(
+        tmp_path / "d", meta, hh=hh, hv=hv, bounds_merc=TINY_BOUNDS, pairs=_pair_layers()
+    )
+
+
+def test_pairs_become_coherence_and_displacement_layers(tmp_path: Path) -> None:
+    site_dir = _build_with_pairs(tmp_path)
+
+    layers = {layer["id"]: layer for layer in _site_json(site_dir)["layers"]}
+    assert set(layers) == {"coherence", "displacement"}
+    frames = layers["displacement"]["frames"]
+    assert [(f["from"], f["to"]) for f in frames] == [
+        (TINY_DATES[0].isoformat(), TINY_DATES[1].isoformat()),
+        (TINY_DATES[1].isoformat(), TINY_DATES[2].isoformat()),
+    ]
+    for layer in layers.values():
+        assert layer["legend"] is not None
+        for frame in layer["frames"]:
+            assert (site_dir / frame["file"]).is_file()
+    assert layers["displacement"]["unit"] == "cm"
+
+
+def test_displacement_is_blank_where_coherence_is_low(tmp_path: Path) -> None:
+    site_dir = _build_with_pairs(tmp_path)
+
+    layers = {layer["id"]: layer for layer in _site_json(site_dir)["layers"]}
+    image = Image.open(site_dir / layers["displacement"]["frames"][1]["file"]).convert("RGBA")
+    blank, moved = image.getpixel((0, 0)), image.getpixel((5, 0))
+    assert isinstance(blank, tuple) and isinstance(moved, tuple)
+    assert blank[3] == 0 and moved[3] > 0
+    assert moved[2] > moved[0]  # blue = toward the satellite
+
+
+def test_points_get_coherence_and_cumulative_motion(tmp_path: Path) -> None:
+    site_dir = _build_with_pairs(tmp_path)
+
+    block = _site_json(site_dir)
+    series = json.loads((site_dir / block["point_extras"]["p1"]).read_text())["series"]
+    assert series[0] == {
+        "from": TINY_DATES[0].isoformat(),
+        "to": TINY_DATES[1].isoformat(),
+        "coherence": 0.9,
+        "los_cm": 1.0,
+    }
+    # The point decorrelated in the second pair: no motion value, and the running total
+    # stops rather than pretending nothing moved.
+    assert series[1]["coherence"] == 0.1 and series[1]["los_cm"] is None

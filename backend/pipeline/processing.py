@@ -66,23 +66,37 @@ def to_mercator_grid(
 
     Area-averages when shrinking, and leaves NaN where the crop has no data.
     """
-    dx, dy = float(crop.x[1] - crop.x[0]), float(crop.y[1] - crop.y[0])  # dy is negative
-    # x / y are pixel centres; an affine transform wants the top-left corner of the grid.
-    source_transform = Affine(
-        dx, 0.0, float(crop.x[0]) - dx / 2, 0.0, dy, float(crop.y[0]) - dy / 2
+    return resample_to_mercator(
+        crop.power[polarisation], crop.x, crop.y, crop.epsg, bounds, shape, Resampling.average
     )
+
+
+def resample_to_mercator(
+    values: Array,
+    x: Array,
+    y: Array,
+    epsg: int,
+    bounds: MercatorBounds,
+    shape: tuple[int, int],
+    resampling: Resampling,
+) -> Array:
+    """Any UTM raster (pixel-centre x ascending, y descending) onto the site grid.
+    Use average for same-or-finer sources, bilinear to upsample a coarser one."""
+    dx, dy = float(x[1] - x[0]), float(y[1] - y[0])  # dy is negative
+    # x / y are pixel centres; an affine transform wants the top-left corner of the grid.
+    source_transform = Affine(dx, 0.0, float(x[0]) - dx / 2, 0.0, dy, float(y[0]) - dy / 2)
     xmin, ymin, xmax, ymax = bounds
     rows, cols = shape
     out = np.full(shape, np.nan, dtype="f4")
     reproject(
-        source=np.ascontiguousarray(crop.power[polarisation], dtype="f4"),
+        source=np.ascontiguousarray(values, dtype="f4"),
         destination=out,
         src_transform=source_transform,
-        src_crs=f"EPSG:{crop.epsg}",
+        src_crs=f"EPSG:{epsg}",
         dst_transform=from_bounds(xmin, ymin, xmax, ymax, cols, rows),
         dst_crs="EPSG:3857",
         src_nodata=np.nan,
         dst_nodata=np.nan,
-        resampling=Resampling.average,
+        resampling=resampling,
     )
     return out

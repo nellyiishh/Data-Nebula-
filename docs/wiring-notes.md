@@ -15,7 +15,7 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Radar-blind overlay (`radar_blind`) | Wired | `pipeline/radar_blind.py`: local-slope layover/shadow from Copernicus GLO-30 DEM + GCOV look geometry. Ridges hiding distant valleys are not caught |
 | Raw linear example | Wired | Last pass before the event, written by `pipeline/derived.py` when the block has none |
 | Validation numbers | Wired, **no real input yet** | Computed only when the site has `scar` and `stable` polygon outlines in `data/ext/<id>/`; none are mapped for Toguz-Bulak, so `validation` is null |
-| Coherence / LOS displacement | Not built | P2; needs GUNW pairs over the site |
+| Coherence / LOS displacement (`coherence`, `displacement` layers + `point_extras`) | Wired | `pipeline/interferometry.py` + `derived.py` from NISAR GUNW pairs listed in the manifest (`pairs`). Coherence 20 m; motion from 80 m unwrapped phase − ionosphere, `−φλ/4π` (MintPy convention, + = toward the satellite), referenced to the site median, blank below coherence 0.3, colour ±1.5 cm. Point files hold cumulative motion, which stops (null) after a pair with no value |
 
 ## Web (`web/`)
 

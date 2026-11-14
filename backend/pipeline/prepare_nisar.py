@@ -25,15 +25,32 @@ from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import BaseModel
+from rasterio.warp import Resampling
 
 from app.core.config import REPO_ROOT, Settings
 from app.core.logging import configure_logging, get_logger
 from app.features.sites.models import MercatorBounds
 from app.features.sites.schemas import Acquisition, ChangeType, PointOfInterest
 from app.features.sites.slope_echo import SlopeEcho
-from pipeline.processing import despeckle, mercator_grid, to_db, to_mercator_grid
+from pipeline.interferometry import PairLayers, prepare_pair_layers
+from pipeline.processing import (
+    despeckle,
+    mercator_grid,
+    resample_to_mercator,
+    to_db,
+    to_mercator_grid,
+)
 from pipeline.radar_blind import DemSource, blind_mask, cached_dem, fetch_copernicus_dem
-from pipeline.remote_crop import GCOV_SHORT_NAME, BBox, Crop, crop_granule, load_earthdata_env
+from pipeline.remote_crop import (
+    GCOV_SHORT_NAME,
+    GUNW_SHORT_NAME,
+    BBox,
+    Crop,
+    PairCrop,
+    crop_granule,
+    crop_pair,
+    load_earthdata_env,
+)
 from pipeline.writer import SiteMeta, write_site
 
 MANIFEST_PATH = REPO_ROOT / "data" / "manifest.json"
@@ -58,6 +75,9 @@ class ManifestSite(BaseModel):
     # keep one collection per site so every date shares one processing version.
     collection: str = GCOV_SHORT_NAME
     points_of_interest: list[PointOfInterest] = []
+    # GUNW interferogram IDs, one per consecutive pair of the dates above (landslide sites).
+    pairs: list[str] = []
+    pair_collection: str = GUNW_SHORT_NAME
     slope_echo: SlopeEcho | None = None
 
 
@@ -70,6 +90,7 @@ def load_manifest() -> Manifest:
 
 
 Cropper = Callable[[str, BBox, Path], Crop]
+PairCropper = Callable[[str, BBox, Path], PairCrop]
 
 
 def prepare_site(
@@ -80,6 +101,7 @@ def prepare_site(
     max_side: int = 1024,
     ext_root: Path = EXT_ROOT,
     dem_source: DemSource = fetch_copernicus_dem,
+    pair_cropper: PairCropper | None = None,
 ) -> Path:
     if len(site.granules) < 2:
         raise ValueError(f"{site.id}: a change map needs at least two dates")
@@ -125,8 +147,72 @@ def prepare_site(
         if site.slope_echo is not None
         else None
     )
+    pair_cropper = pair_cropper or functools.partial(crop_pair, collection=site.pair_collection)
+    pairs = _pair_layers(site, crops, bounds, shape, raw_dir / site.id, pair_cropper)
     return write_site(
-        data_dir, meta, hh=stacks["HH"], hv=stacks["HV"], bounds_merc=bounds, blind_mask=blind
+        data_dir,
+        meta,
+        hh=stacks["HH"],
+        hv=stacks["HV"],
+        bounds_merc=bounds,
+        blind_mask=blind,
+        pairs=pairs,
+    )
+
+
+def _pair_layers(
+    site: ManifestSite,
+    crops: list[Crop],
+    bounds: MercatorBounds,
+    shape: tuple[int, int],
+    cache_dir: Path,
+    pair_cropper: PairCropper,
+) -> PairLayers | None:
+    """Coherence and motion for each listed pair, on the same grid as the brightness."""
+    if not site.pairs:
+        return None
+    pair_crops = sorted(
+        (pair_cropper(granule, site.bbox, cache_dir) for granule in site.pairs),
+        key=lambda crop: crop.reference,
+    )
+    dates = {crop.acquired.date() for crop in crops}
+    for pair in pair_crops:
+        if pair.epsg != crops[0].epsg:
+            raise ValueError(f"{pair.granule_id} is not on the same track and frame as the passes")
+        missing = {pair.reference.date(), pair.secondary.date()} - dates
+        if missing:
+            raise ValueError(
+                f"{pair.granule_id} uses date(s) {sorted(str(d) for d in missing)} that the "
+                "site's passes do not include"
+            )
+    coherence = np.stack(
+        [
+            resample_to_mercator(
+                p.coherence.values,
+                p.coherence.x,
+                p.coherence.y,
+                p.epsg,
+                bounds,
+                shape,
+                Resampling.average,
+            )
+            for p in pair_crops
+        ]
+    )
+    # 80 m phase onto a ~20 m grid: interpolate rather than paint 4x4 blocks.
+    phase = np.stack(
+        [
+            resample_to_mercator(
+                p.phase.values, p.phase.x, p.phase.y, p.epsg, bounds, shape, Resampling.bilinear
+            )
+            for p in pair_crops
+        ]
+    )
+    coherence, los = prepare_pair_layers(coherence, phase, pair_crops[0].wavelength_m)
+    return PairLayers(
+        pairs=[(p.reference.date(), p.secondary.date()) for p in pair_crops],
+        coherence=coherence,
+        los_cm=los,
     )
 
 

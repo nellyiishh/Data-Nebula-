@@ -1,0 +1,53 @@
+{
+  "case_id": "toguz-bulak-donguz-oy-2026-10-10",
+  "name": "Доңуз-Ой, Тогуз-Булак",
+  "district": "Кара-Кульджинский район",
+  "region": "Ошская область",
+  "country": "Кыргызстан",
+  "map_center": {
+    "type": "Point",
+    "coordinates": [
+      73.62973,
+      40.47343
+    ],
+    "represents": "village_reference_point",
+    "source_url": "https://mapcarta.com/15401492"
+  },
+  "landslide_geometry": null,
+  "event": {
+    "occurred_at_local_approx": "2026-10-10T14:00:00+06:00",
+    "reported_at_local": "2026-10-12T15:43:00+06:00",
+    "source": "МЧС Кыргызской Республики",
+    "source_url": "https://www.mchs.gov.kg/ru/news/okm-kara-kulzhadagy-zher-kochkunun-abalyn-izildep-kesepetterin-zhojuu-bojuncha-ish-alyp-baruuda/",
+    "field_observations": {
+      "crack_length_m_approx": 220,
+      "estimated_mass_volume_m3": 42800,
+      "observed_speed_m_per_hour_approx": 1.1,
+      "evacuated_people": 11,
+      "objects_in_direction_of_movement": [
+        "Два жилых дома",
+        "Дорога Ылай-Талаа — Гүлчө",
+        "Электроподстанция",
+        "Опоры линий электропередачи"
+      ]
+    }
+  },
+  "layers": {
+    "nisar": {
+      "status": "pending",
+      "scenes": [],
+      "url": null,
+      "source_url": "https://nisar-docs.asf.alaska.edu/asf-search/"
+    },
+    "precipitation": {
+      "status": "pending",
+      "url": null,
+      "source_url": "https://gpm.nasa.gov/data/imerg"
+    },
+    "infrastructure": {
+      "status": "pending",
+      "url": null,
+      "source_url": "https://www.openstreetmap.org/"
+    }
+  }
+}

@@ -96,10 +96,10 @@ data_nebula/
 |---|---|---|
 | Backend | Python 3.12+, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic, uv, ruff, pyright, pytest | TBD |
 | Database | PostgreSQL; Redis only for cache/queues | TBD |
-| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | TBD |
+| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | React 19 + Vite + TS strict, oxlint; small `useJson` hook instead of TanStack Query; no tests yet (hackathon) |
 | Geo pipeline | Python: rasterio/GDAL, xarray + h5py (NISAR HDF5), asf_search / earthaccess for downloads; outputs COGs | TBD |
 | Tile serving | TiTiler (COG → XYZ tiles) or pre-rendered static tiles | TBD |
-| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | TBD |
+| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | MapLibre GL 6, CARTO dark basemap, own swipe compare and SVG chart (no extra deps) |
 | Auth | One identity provider; backend verifies tokens; web never trusts its own role checks | TBD |
 
 Commands live in §8 — keep them exact and runnable once the stack is set.
@@ -325,11 +325,11 @@ uv run uvicorn app.main:app --reload      # run
 
 # web/
 npm ci
-npm run lint && npm run typecheck
-npm test                                  # unit/component
-npm run test:e2e                          # Playwright (critical flows)
-npm run gen:api                           # regenerate client from contracts/openapi.json
-npm run dev
+npm run lint && npm run typecheck         # oxlint + tsc -b
+npm run build                             # tsc -b && vite build
+npm run fake-data                         # regenerate FAKE public/data/ (until the backend export exists)
+npm run dev                               # http://localhost:5173
+# not set up yet: npm test, npm run test:e2e, npm run gen:api
 ```
 
 - **CI gate (one workflow):** lint + format check + typecheck + full tests with coverage +

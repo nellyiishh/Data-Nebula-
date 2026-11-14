@@ -1,0 +1,43 @@
+.swipe {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.swipe__right {
+  position: absolute;
+  inset: 0;
+}
+.swipe__badge-right {
+  position: absolute;
+  top: var(--space-3);
+  right: 56px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  pointer-events: none;
+}
+.swipe__divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--text);
+  z-index: 2;
+}
+.swipe__handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--text);
+  background: var(--surface-2);
+  cursor: ew-resize;
+  touch-action: none;
+}

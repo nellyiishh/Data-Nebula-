@@ -1,0 +1,95 @@
+/* Design tokens. Use these variables, never raw hex, in feature CSS (CLAUDE.md §3). */
+:root {
+  --bg: #0b1020;
+  --surface: #131a2e;
+  --surface-2: #1b2440;
+  --border: #2a3456;
+  --text: #e7ecf7;
+  --text-muted: #9aa6c4;
+  --accent: #5aa9ff;
+  --accent-2: #ffb454;
+  --hh: #5aa9ff;
+  --hv: #7ee0a1;
+  --darker: #e63232;
+  --brighter: #3270f0;
+  --danger: #ff6b6b;
+
+  --radius: 8px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'JetBrains Mono', monospace;
+  --sidebar-w: 340px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: var(--accent);
+}
+.btn[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+.panel h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+.state-msg {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.state-msg.error {
+  color: var(--danger);
+  font-style: normal;
+}

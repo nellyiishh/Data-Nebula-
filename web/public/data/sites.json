@@ -1,0 +1,11 @@
+[
+  {
+    "id": "demo-site",
+    "name": "Demo site (FAKE data)",
+    "center": [
+      77,
+      43.15
+    ],
+    "change_type": "mudflow"
+  }
+]

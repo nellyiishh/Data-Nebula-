@@ -33,21 +33,6 @@
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-.ws__brand {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-.ws__brand strong {
-  font-size: 18px;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-}
-.ws__brand .muted {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 .ws__search {
   position: relative;
   flex: 1;
@@ -297,7 +282,6 @@
   .ws--left.ws--right .ws__right {
     display: none;
   }
-  .ws__brand .muted,
   .ws__date {
     display: none;
   }

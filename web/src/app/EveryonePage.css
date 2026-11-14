@@ -1,0 +1,127 @@
+.everyone {
+  font-size: 16px;
+}
+
+.ev-hero {
+  position: relative;
+  min-height: min(86vh, 760px);
+  display: flex;
+  align-items: flex-end;
+}
+.ev-hero__text {
+  position: relative;
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) calc(var(--space-6) * 2);
+}
+.ev-hero__kicker {
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent-soft);
+}
+.ev-hero h1 {
+  margin: 0 0 var(--space-3);
+  font-size: clamp(34px, 6.5vw, 72px);
+  line-height: 1.02;
+  max-width: 14ch;
+}
+.ev-hero__lede {
+  margin: 0 0 var(--space-4);
+  max-width: 56ch;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+.ev-places {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.ev-hero__cta,
+.ev-more__btn {
+  display: inline-block;
+  text-decoration: none;
+  padding: var(--space-2) var(--space-6);
+  font-size: 17px;
+}
+
+.ev-event {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--event);
+  border-radius: 0 var(--radius-card) var(--radius-card) 0;
+  padding: var(--space-4) var(--space-6);
+}
+.ev-event__date {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--event);
+}
+.ev-event__label {
+  margin: var(--space-1) 0 var(--space-3);
+  font-size: 22px;
+  font-weight: 600;
+}
+.ev-event ul {
+  margin: 0 0 var(--space-3);
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.ev-event .muted {
+  margin: 0;
+}
+
+/* Four big tabs instead of a layer panel. */
+.ev-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.ev-modes button {
+  flex: 1 1 160px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 16px;
+  cursor: pointer;
+}
+.ev-modes button:hover {
+  border-color: var(--accent);
+}
+.ev-modes button[aria-selected='true'] {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.ev-map {
+  position: relative;
+  height: min(70vh, 620px);
+  min-height: 340px;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.ev-explain {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
+
+.ev-listen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+}
+.ev-listen p {
+  margin: 0;
+}

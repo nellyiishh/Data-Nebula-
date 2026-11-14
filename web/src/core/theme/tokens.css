@@ -78,6 +78,13 @@ input {
 .btn:hover {
   border-color: var(--accent);
 }
+/* Link-buttons keep the button colour, not the browser's (visited) link colour. */
+a.btn {
+  color: var(--text);
+}
+a.btn--primary {
+  color: var(--bg);
+}
 .btn[aria-pressed='true'] {
   background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
   border-color: var(--accent);

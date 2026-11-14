@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Map as MapLibreMap, Marker, NavigationControl, ScaleControl } from 'maplibre-gl'
+import { Map as MapLibreMap, Marker, NavigationControl, ScaleControl, setWorkerUrl } from 'maplibre-gl'
 import type { Coordinates, GeoJSONSourceSpecification, ImageSource, MapOptions } from 'maplibre-gl'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './SarMap.css'
+
+// MapLibre looks for its worker file next to its own script. Vite moves that script (dev
+// pre-bundle, build chunk) without the worker, so GeoJSON overlays never draw. `?url` makes
+// Vite serve and ship the worker, and this points MapLibre at it.
+setWorkerUrl(workerUrl)
 
 // Shared map used by every screen. It knows nothing about sites or features: it draws one
 // main raster, extra raster overlays, GeoJSON overlays and markers, and reports clicks.

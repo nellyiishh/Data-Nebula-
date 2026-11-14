@@ -69,8 +69,8 @@
             "research": "Donuz-Oi section, Kara-Kulja district. ~42.8 thousand m³, ~1.1 m/h, 220 m tension crack (MChS)."
           },
           "rain": {
-            "explore": "Rainfall data for this window is not added yet.",
-            "research": "TODO(story): add the IMERG series and describe it."
+            "explore": "September was the wettest month here, with 72 mm and 30 mm on 5 September alone. The week before the slide was almost dry: 4.5 mm, and none on 10 October.",
+            "research": "IMERG Late daily V07, 0.1° cell at 40.45 N, 73.65 E. 13 Jul – 11 Oct: 137 mm, 22 days above 1 mm. 30 days before the event: 40.9 mm; 7 days: 4.5 mm. No same-day trigger; earlier wetting may have loaded the slope, which rain data alone cannot show."
           },
           "radar": {
             "explore": "NISAR's L-band radar sees the ground through cloud, day and night, every 12 days on this track.",
@@ -87,7 +87,14 @@
         },
         "layers": [],
         "overlays": [],
-        "rain": null,
+        "rain": {
+          "file": "ext/rain.json",
+          "source": {
+            "name": "GPM IMERG Late daily V07, NASA GES DISC",
+            "url": "https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_07/summary"
+          },
+          "note": "One 0.1° cell (~10 km) over the village: regional rain, not rain measured on the slope."
+        },
         "point_extras": {},
         "exposure": null,
         "validation": null,

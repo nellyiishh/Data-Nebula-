@@ -1,0 +1,40 @@
+{
+  "frames": [
+    {
+      "date": "2026-08-08",
+      "file": "ext/optical/2026-08-08.png",
+      "scene_id": "HLS.L30.T43TCE.2026220T054613.v2.0",
+      "clear_pct": 100.0
+    },
+    {
+      "date": "2026-08-27",
+      "file": "ext/optical/2026-08-27.png",
+      "scene_id": "HLS.S30.T43TCE.2026239T054631.v2.0",
+      "clear_pct": 100.0
+    },
+    {
+      "date": "2026-09-06",
+      "file": "ext/optical/2026-09-06.png",
+      "scene_id": "HLS.S30.T43TCE.2026249T054631.v2.0",
+      "clear_pct": 100.0
+    },
+    {
+      "date": "2026-09-14",
+      "file": "ext/optical/2026-09-14.png",
+      "scene_id": "HLS.S30.T43TCE.2026257T055629.v2.0",
+      "clear_pct": 100.0
+    },
+    {
+      "date": "2026-10-03",
+      "file": "ext/optical/2026-10-03.png",
+      "scene_id": "HLS.L30.T43TCE.2026276T054640.v2.0",
+      "clear_pct": 100.0
+    },
+    {
+      "date": "2026-10-11",
+      "file": "ext/optical/2026-10-11.png",
+      "scene_id": "HLS.L30.T43TCE.2026284T054636.v2.0",
+      "clear_pct": 100.0
+    }
+  ]
+}

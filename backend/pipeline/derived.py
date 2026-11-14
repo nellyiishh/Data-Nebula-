@@ -1,5 +1,6 @@
 """Layers derived for a landslide story while a site is written: the raw linear-power
-example, the radar-blind overlay and the scar-vs-stable validation numbers."""
+example, the radar-blind overlay, the scar-vs-stable validation numbers and the exposure
+block (from pipeline/exposure.py output)."""
 
 import datetime as dt
 import json
@@ -15,6 +16,7 @@ from app.features.sites.models import MercatorBounds, pixel_at
 from app.features.sites.rendering import encode_png, smoothed_difference
 from app.features.sites.schemas import PointOfInterest
 from app.features.sites.slope_echo import (
+    Exposure,
     ExtFrame,
     ExtLayer,
     ExtOverlay,
@@ -48,6 +50,57 @@ BLIND_OVERLAY = ExtOverlay(
 )
 
 
+# Written by pipeline/exposure.py into data/ext/<site>/, copied here by write_site.
+EXPOSURE_ID = "exposure"
+EXPOSURE_FILE = "ext/exposure.geojson"
+EXPOSURE_NUMBERS_FILE = "ext/exposure.json"
+EXPOSURE_OVERLAY = ExtOverlay(
+    id=EXPOSURE_ID,
+    kind="exposure",
+    title="Buildings and roads nearby",
+    file=EXPOSURE_FILE,
+    description="Buildings (points) and drivable roads (lines) mapped in OpenStreetMap near "
+    "the slide. Rural buildings are often missing from the map.",
+    source=SourceRef(
+        name="© OpenStreetMap contributors", url="https://www.openstreetmap.org/copyright"
+    ),
+)
+
+
+# Written by pipeline/optical.py into data/ext/<site>/, copied here by write_site.
+OPTICAL_DIR = "ext/optical"
+OPTICAL_NUMBERS_FILE = "ext/optical.json"
+OPTICAL_SOURCE = SourceRef(
+    name="NASA HLS v2.0 (Harmonized Landsat 8/9 + Sentinel-2, 30 m), LP DAAC",
+    url="https://www.earthdata.nasa.gov/data/projects/hls",
+)
+
+
+def _optical_layer(site_dir: Path) -> ExtLayer | None:
+    path = site_dir / OPTICAL_NUMBERS_FILE
+    if not path.is_file():
+        return None
+    frames = json.loads(path.read_text())["frames"]
+    scenes = "; ".join(f"{f['date']} {f['scene_id']} ({f['clear_pct']:g}% clear)" for f in frames)
+    return ExtLayer(
+        id="optical",
+        kind="optical",
+        title="Camera view",
+        unit="",
+        description="What a camera saw from space: true colour, one fixed brightness for "
+        "every date. Only days at least 80% clear over the site are used, and clouds that "
+        f"remain are left in. Scenes: {scenes}.",
+        source=OPTICAL_SOURCE,
+        frames=[ExtFrame.model_validate({"date": f["date"], "file": f["file"]}) for f in frames],
+        legend=None,
+    )
+
+
+def _read_exposure(site_dir: Path) -> Exposure | None:
+    path = site_dir / EXPOSURE_NUMBERS_FILE
+    return Exposure.model_validate_json(path.read_text()) if path.is_file() else None
+
+
 def derive_slope_echo(
     site_dir: Path,
     block: SlopeEcho,
@@ -66,6 +119,9 @@ def derive_slope_echo(
             **block.point_extras,
             **_write_point_extras(site_dir, pairs, points or [], bounds_merc),
         }
+    layers = update.get("layers", block.layers)
+    if all(layer.kind != "optical" for layer in layers) and (optical := _optical_layer(site_dir)):
+        update["layers"] = [*layers, optical]
     if block.raw_example is None:
         update["raw_example"] = _write_raw_example(site_dir, dates, hh, block.event.date)
     if blind is not None:
@@ -73,6 +129,11 @@ def derive_slope_echo(
         (site_dir / BLIND_FILE).write_bytes(encode_png(_mask_rgba(blind, BLIND_RGBA)))
         others = [overlay for overlay in block.overlays if overlay.id != BLIND_ID]
         update["overlays"] = [*others, BLIND_OVERLAY]
+    if block.exposure is None and (exposure := _read_exposure(site_dir)) is not None:
+        update["exposure"] = exposure
+        overlays = update.get("overlays", block.overlays)
+        if (site_dir / EXPOSURE_FILE).is_file() and all(o.id != EXPOSURE_ID for o in overlays):
+            update["overlays"] = [*overlays, EXPOSURE_OVERLAY]
     if block.validation is None:
         update["validation"] = _validate(site_dir, block, dates, hh, bounds_merc, blind)
     return block.model_copy(update=update)

@@ -51,8 +51,8 @@ water story; this section replaces them where they disagree.
 3. Put the display ranges (dB min/max per layer, change threshold, colours) in the site
    detail; the web legend reads them (closes `TODO(legend-api)`).
 4. Per-site `layers` list depends on the change type (no water mask for a landslide).
-5. **Static export** (`python -m pipeline.export_static`): writes `web/public/data/` in the
-   web's layout — `sites.json`, `sites/{id}.json`, layers, `change/{from}_{to}.png` for
+5. **Static export** (`python -m pipeline.export_static`): writes `data/web/` (served by the
+   web at `/data`) in the web's layout — `sites.json`, `sites/{id}.json`, layers, `change/{from}_{to}.png` for
    every consecutive pair, `points/{poi}.json`, and copies `ext/` files.
 6. Serve `ext/` files from the API (`GET /sites/{id}/files/ext/…`, safe paths only), so
    API mode matches static mode.
@@ -69,6 +69,54 @@ water story; this section replaces them where they disagree.
 12. Coherence and LOS displacement PNGs per pair + per-point `coherence` / `los_cm`.
 
 **Not backend:** rain, exposure, optical, catalog, story text. The export copies them.
+
+### What is left (checked 2026-11-14, evening)
+
+Done: P0, P1 code, P2. Real site `toguz-bulak`: 6 NISAR passes (12 Aug – 11 Oct), HH/HV/colour
+mix, 5 coherence + 5 ground-motion pairs, radar-blind mask, raw example, one point
+(village). 111 backend tests pass.
+
+**A. Backend can do now (no outside input)**
+1. ~~**Exposure**~~ **DONE:** `pipeline/exposure.py` → 14 buildings, 11.97 km of road within
+   2 km. Measured around the village point until a `slide` point exists (item 8); rerun then.
+2. ~~**Optical before/after**~~ **DONE:** `pipeline/optical.py` (NASA HLS v2.0, 30 m). Clouds are
+   measured over the site from each scene's Fmask; one clear scene per radar pass on the
+   same side of the event, plus the first clear one after it. Web note: Radar Vision shows
+   the latest camera frame on or before the radar date, so an after-image later than the
+   last radar pass only appears in the Time Machine.
+3. **Registered events:** nearby rows from NASA's Global Landslide Catalog / COOLR →
+   `catalog`. Its records may stop years ago; show "none recorded" rather than inventing rows.
+4. **Re-run `prepare_nisar` + `export_static`** after each of the above.
+5. **Remove the synthetic `demo-reservoir` from `data/web/`.** The web lists it next to the
+   real site today, so judges would see a fake water site.
+
+**B. Needs a person first**
+6. **Rain:** `pipeline/rain.py` is written but not run. Someone with the Earthdata account
+   must accept the GES DISC terms once (otherwise every request is refused). Then run it and
+   add the `rain` block to the manifest.
+7. **Scar outline (+ stable area):** draw the slide polygon from the after-image
+   (step 2) or from the Ministry's description. The validation numbers then compute
+   automatically (code is done). Without it, keep "no validation" in the limitations.
+8. **Slide location:** the only point is the village centre. Add a point on the slide
+   itself (Donuz-Oi section) so the chart shows the slope, not the houses.
+
+**C. Web team**
+9. Read the legend from `display` (`TODO(legend-api)`); generate the TS types from
+   `contracts/openapi.json` (`TODO(contract-api)`).
+10. Story and team text (`TODO(story)` ×3, `TODO(team)` ×3); rain screen text once step 6 lands.
+11. Check the 3D terrain in a real WebGL browser; remove or hide the fake `togus-bulak` site
+    (note the spelling: the real one is `toguz-bulak`).
+
+**D. Submission (everyone, start now)**
+12. **Licence file** (MIT) — none yet, and the challenge requires open source.
+13. **README** at the repo root is empty: what it is, how to run, data sources and credits.
+14. Demo video or slides, Space Apps project page text, AI-use statement, dataset credits
+    (NISAR/ASF, GPM IMERG, OpenStreetMap, HLS).
+15. Final check: every link opens in a private window.
+
+**E. Later (after the hackathon or if time is left)**
+16. Move to the hosted backend (`TODO(server-backend)`, section below).
+17. Swap the test client package (`httpx` → `httpx2`) to clear the one test warning.
 
 ### Later: move from "local files" to "server backend"
 

@@ -319,7 +319,7 @@ uv sync                                   # deps (add --group pipeline to proces
 uv run ruff check . && uv run ruff format --check .
 uv run pyright                            # types
 uv run pytest -m "not slow"               # fast lane (scope to touched feature path)
-uv run pytest                             # full suite — required before done
+uv run --group pipeline pytest            # full suite — required before done (the plain `uv run pytest` skips the pipeline tests)
 uv run python -m app.export_openapi       # regenerate contracts/openapi.json after any API change
 uv run python -m pipeline.make_demo_site  # synthetic demo site → data/derived/demo-reservoir/
 uv run python -m pipeline.prepare_nisar   # real NISAR → same files (TODO(nisar-pipeline))

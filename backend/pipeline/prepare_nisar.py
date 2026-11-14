@@ -3,29 +3,36 @@
     uv sync --group pipeline
     uv run python -m pipeline.prepare_nisar
 
-TODO(nisar-pipeline): not implemented yet. Steps, in order:
-  1. Add the site to data/manifest.json: id, name, change_type, bbox [west, south, east,
-     north], and the GCOV granule IDs. Every date must share one track and frame, or
-     viewing-angle differences show up as fake change.
-  2. Download each granule into data/raw/<site_id>/ from ASF (needs an Earthdata login).
-  3. Read /science/LSAR/GCOV/grids/frequencyA/HHHH and .../HVHV with h5py, plus the
-     xCoordinates / yCoordinates / projection datasets of the same group.
-  4. Crop to the bbox. Power → dB with 10*log10; zeros and fill values → NaN.
-  5. Reduce speckle with scipy.ndimage.median_filter (size 3–5).
-  6. Reproject every date onto ONE shared EPSG:3857 grid (rasterio.warp.reproject).
-  7. Call pipeline.writer.write_site(...) with source="nisar" and real granule IDs.
+Add a site to data/manifest.json (id, name, change_type, bbox [west, south, east, north],
+band, granules). Every granule must come from one track and frame, or viewing-angle
+differences show up as fake change. EARTHDATA_TOKEN must be set (backend/.env).
+
+Per granule: remote_crop reads only the bbox of HH/HV (no full download), then this module
+despeckles in linear power, resamples onto one shared EPSG:3857 grid, converts to dB and
+hands the stack to writer.write_site.
 """
 
+import dataclasses
 import json
+from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
+import numpy as np
 from pydantic import BaseModel
 
-from app.core.config import REPO_ROOT
+from app.core.config import REPO_ROOT, Settings
 from app.core.logging import configure_logging, get_logger
-from app.features.sites.schemas import ChangeType
+from app.features.sites.schemas import Acquisition, ChangeType
+from pipeline.processing import despeckle, mercator_grid, to_db, to_mercator_grid
+from pipeline.remote_crop import BBox, Crop, crop_granule
+from pipeline.writer import SiteMeta, write_site
 
 MANIFEST_PATH = REPO_ROOT / "data" / "manifest.json"
+RAW_DIR = REPO_ROOT / "data" / "raw"
+ATTRIBUTION = (
+    "Contains NISAR L-band data (NASA/ISRO), distributed by the ASF DAAC. Processed by Data Nebula."
+)
 log = get_logger("nisar")
 
 
@@ -46,13 +53,70 @@ def load_manifest() -> Manifest:
     return Manifest.model_validate(json.loads(MANIFEST_PATH.read_text()))
 
 
+Cropper = Callable[[str, BBox, Path], Crop]
+
+
+def prepare_site(
+    site: ManifestSite,
+    data_dir: Path,
+    raw_dir: Path,
+    cropper: Cropper = crop_granule,
+    max_side: int = 1024,
+) -> Path:
+    if len(site.granules) < 2:
+        raise ValueError(f"{site.id}: a change map needs at least two dates")
+    crops = sorted(
+        (cropper(granule, site.bbox, raw_dir / site.id) for granule in site.granules),
+        key=lambda crop: crop.acquired,
+    )
+    if len({crop.epsg for crop in crops}) != 1:
+        raise ValueError(
+            f"{site.id}: granules are not on the same track and frame (UTM zones differ)"
+        )
+
+    native_res = float(abs(crops[0].x[1] - crops[0].x[0]))
+    bounds, shape = mercator_grid(site.bbox, native_res, max_side)
+    stacks = {
+        pol: np.stack(
+            [to_db(to_mercator_grid(_despeckled(crop), pol, bounds, shape)) for crop in crops]
+        )
+        for pol in ("HH", "HV")
+    }
+    meta = SiteMeta(
+        id=site.id,
+        name=site.name,
+        change_type=site.change_type,
+        source="nisar",
+        acquisitions=[
+            Acquisition(
+                date=crop.acquired.date(),
+                granule_id=crop.granule_id,
+                band=site.band,
+                polarizations=["HH", "HV"],
+            )
+            for crop in crops
+        ],
+        attribution=ATTRIBUTION,
+    )
+    return write_site(data_dir, meta, hh=stacks["HH"], hv=stacks["HV"], bounds_merc=bounds)
+
+
+def _despeckled(crop: Crop) -> Crop:
+    return dataclasses.replace(
+        crop, power={pol: despeckle(block) for pol, block in crop.power.items()}
+    )
+
+
 def main() -> None:
     configure_logging()
     manifest = load_manifest()
     if not manifest.sites:
         log.warning("No sites in %s yet; add one (see this module's docstring).", MANIFEST_PATH)
         return
-    raise NotImplementedError("TODO(nisar-pipeline): steps 2-7 in this module's docstring")
+    for site in manifest.sites:
+        log.info("Preparing %s from %d granules", site.id, len(site.granules))
+        site_dir = prepare_site(site, Settings().data_dir, RAW_DIR)
+        log.info("Wrote %s", site_dir)
 
 
 if __name__ == "__main__":

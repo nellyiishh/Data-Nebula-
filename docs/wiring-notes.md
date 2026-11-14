@@ -12,3 +12,10 @@ What is wired, stubbed or local-only today. Rules: CLAUDE.md §2.7.
 | Legend dB ranges | `TODO(legend-api)` | `web/src/features/compare/components/Legend.tsx` — must match the backend's fixed stretch. |
 | Story texts | `TODO(story)` | `web/src/features/story/components/StoryPanel.tsx`. |
 | Fake site | Placeholder location | `demo-site` near 43.15 N, 77.0 E, `change_type: mudflow`; replace with the real study site. |
+
+## Backend pipeline (`backend/pipeline/`)
+
+| Surface | State | Notes |
+|---|---|---|
+| Real NISAR site | Wired, no site yet | `prepare_nisar.py` crops (remote), despeckles, reprojects to one EPSG:3857 grid, converts to dB and calls `write_site`; `data/manifest.json` has no sites, so nothing real is served. Only one validated granule per track/frame existed over the test area on 2026-11-14, so a multi-date run is untested on real data. |
+| NISAR partial read | Wired, used by `prepare_nisar` | `remote_crop.py` reads only the bbox of HHHH/HVHV from ASF via `earthaccess` (needs `EARTHDATA_TOKEN`). Checked live on one granule: 80 MB fetched of 801 MB. Only one track and polarisation pair tested. |

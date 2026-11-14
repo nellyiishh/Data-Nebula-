@@ -1,4 +1,5 @@
 import { Brand } from '../core/ui/Brand'
+import { useSmoothAnchors } from '../core/ui/useSmoothAnchors'
 import { useSite, useSites } from '../features/sites/api'
 import { useUrlState } from '../core/url/useUrlState'
 import { PROJECT } from '../features/story/content'
@@ -16,6 +17,7 @@ type Section = 'everyone' | 'specialists'
 
 export function App() {
   const [params, setParams] = useUrlState()
+  useSmoothAnchors()
   const sites = useSites()
   // An unknown ?site= (e.g. an old link to the removed demo site) falls back to the first real site.
   const known = sites.status === 'ready' ? sites.data : []

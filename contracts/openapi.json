@@ -75,6 +75,97 @@
         "title": "CatalogEntry",
         "type": "object"
       },
+      "ChangeStats": {
+        "description": "The change image between two dates as numbers. Percentages are of the pixels that\nhave data on both dates; areas are true ground area.",
+        "properties": {
+          "brighter_km2": {
+            "title": "Brighter Km2",
+            "type": "number"
+          },
+          "brighter_pct": {
+            "title": "Brighter Pct",
+            "type": "number"
+          },
+          "changed_km2": {
+            "title": "Changed Km2",
+            "type": "number"
+          },
+          "changed_pct": {
+            "description": "darker + brighter",
+            "title": "Changed Pct",
+            "type": "number"
+          },
+          "darker_km2": {
+            "title": "Darker Km2",
+            "type": "number"
+          },
+          "darker_pct": {
+            "title": "Darker Pct",
+            "type": "number"
+          },
+          "from": {
+            "format": "date",
+            "title": "From",
+            "type": "string"
+          },
+          "mean_delta_db": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean change over the valid pixels (to \u2212 from); null when none are valid.",
+            "title": "Mean Delta Db"
+          },
+          "polarization": {
+            "enum": [
+              "hh",
+              "hv"
+            ],
+            "title": "Polarization",
+            "type": "string"
+          },
+          "site_id": {
+            "title": "Site Id",
+            "type": "string"
+          },
+          "threshold_db": {
+            "description": "A pixel counts as changed at |\u0394dB| \u2265 this",
+            "title": "Threshold Db",
+            "type": "number"
+          },
+          "to": {
+            "format": "date",
+            "title": "To",
+            "type": "string"
+          },
+          "valid_pct": {
+            "description": "Share of the site with data on both dates",
+            "title": "Valid Pct",
+            "type": "number"
+          }
+        },
+        "required": [
+          "site_id",
+          "from",
+          "to",
+          "polarization",
+          "threshold_db",
+          "valid_pct",
+          "darker_pct",
+          "brighter_pct",
+          "changed_pct",
+          "darker_km2",
+          "brighter_km2",
+          "changed_km2",
+          "mean_delta_db"
+        ],
+        "title": "ChangeStats",
+        "type": "object"
+      },
       "DbRange": {
         "properties": {
           "max_db": {
@@ -1240,6 +1331,100 @@
           }
         },
         "summary": "Get one site",
+        "tags": [
+          "sites"
+        ]
+      }
+    },
+    "/api/v1/sites/{site_id}/change-stats": {
+      "get": {
+        "description": "The same comparison as change.png, counted: share and ground area of pixels that got darker or brighter by at least the threshold, and the mean change in dB. A changed pixel is a reason to look, not proof of a landslide.",
+        "operationId": "get_change_stats_api_v1_sites__site_id__change_stats_get",
+        "parameters": [
+          {
+            "description": "Site ID, e.g. demo-reservoir",
+            "in": "path",
+            "name": "site_id",
+            "required": true,
+            "schema": {
+              "description": "Site ID, e.g. demo-reservoir",
+              "pattern": "^[a-z0-9][a-z0-9-]{0,62}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Earlier date",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "description": "Earlier date",
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Later date",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "description": "Later date",
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "polarization",
+            "required": false,
+            "schema": {
+              "default": "hh",
+              "enum": [
+                "hh",
+                "hv"
+              ],
+              "title": "Polarization",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeStats"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unknown site, date or layer."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid parameters."
+          }
+        },
+        "summary": "Change between two dates as numbers",
         "tags": [
           "sites"
         ]

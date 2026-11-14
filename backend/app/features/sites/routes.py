@@ -9,6 +9,7 @@ from app.core.errors import ErrorResponse
 from app.features.sites.dependencies import SiteServiceDep
 from app.features.sites.repository import SITE_ID_PATTERN
 from app.features.sites.schemas import (
+    ChangeStats,
     LayerName,
     PointTimeseries,
     Polarization,
@@ -96,6 +97,25 @@ def get_change(
 ) -> Response:
     png = service.change_png(site_id, date_from, date_to, polarization)
     return Response(content=png, media_type="image/png", headers=_IMAGE_CACHE)
+
+
+@router.get(
+    "/{site_id}/change-stats",
+    summary="Change between two dates as numbers",
+    description="The same comparison as change.png, counted: share and ground area of pixels "
+    "that got darker or brighter by at least the threshold, and the mean change in dB. "
+    "A changed pixel is a reason to look, not proof of a landslide.",
+    response_model=ChangeStats,
+    responses=_ERRORS,
+)
+def get_change_stats(
+    site_id: SiteId,
+    service: SiteServiceDep,
+    date_from: Annotated[dt.date, Query(alias="from", description="Earlier date")],
+    date_to: Annotated[dt.date, Query(alias="to", description="Later date")],
+    polarization: Polarization = "hh",
+) -> ChangeStats:
+    return service.change_stats(site_id, date_from, date_to, polarization)
 
 
 @router.get(

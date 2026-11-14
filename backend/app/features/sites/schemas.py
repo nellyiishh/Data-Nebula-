@@ -4,7 +4,7 @@ models, so the pipeline and the API cannot drift apart."""
 import datetime as dt
 from typing import Literal
 
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from app.features.sites.display import (
     BRIGHTER_RGB,
@@ -131,3 +131,26 @@ class PointTimeseries(BaseModel):
     lon: float
     lat: float
     series: list[TimeseriesEntry]
+
+
+class ChangeStats(BaseModel):
+    """The change image between two dates as numbers. Percentages are of the pixels that
+    have data on both dates; areas are true ground area."""
+
+    model_config = ConfigDict(serialize_by_alias=True)
+
+    site_id: str
+    date_from: dt.date = Field(serialization_alias="from")
+    to: dt.date
+    polarization: Polarization
+    threshold_db: float = Field(description="A pixel counts as changed at |ΔdB| ≥ this")
+    valid_pct: float = Field(description="Share of the site with data on both dates")
+    darker_pct: float
+    brighter_pct: float
+    changed_pct: float = Field(description="darker + brighter")
+    darker_km2: float
+    brighter_km2: float
+    changed_km2: float
+    mean_delta_db: float | None = Field(
+        description="Mean change over the valid pixels (to − from); null when none are valid."
+    )

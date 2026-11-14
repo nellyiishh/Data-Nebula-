@@ -33,8 +33,12 @@ def test_export_writes_the_web_static_layout(derived: Path, tmp_path: Path) -> N
     assert detail["slope_echo"]["layers"][0]["frames"][0]["from"] == "2026-06-20"
     for date in TINY_DATES:
         assert (site_dir / "layers" / "hh" / f"{date.isoformat()}.png").is_file()
-    pairs = sorted(p.name for p in (site_dir / "change").iterdir())
-    assert pairs == [f"{a.isoformat()}_{b.isoformat()}.png" for a, b in pairwise(TINY_DATES)]
+    names = [f"{a.isoformat()}_{b.isoformat()}" for a, b in pairwise(TINY_DATES)]
+    assert sorted(p.name for p in (site_dir / "change").glob("*.png")) == [
+        f"{n}.png" for n in names
+    ]
+    change = json.loads((site_dir / "change" / f"{names[0]}.json").read_text())
+    assert change["from"] == "2026-06-20" and change["darker_pct"] == 40.0
     point = json.loads((site_dir / "points" / "p1.json").read_text())
     assert [entry["date"] for entry in point["series"]] == [d.isoformat() for d in TINY_DATES]
     assert (site_dir / "ext" / "rain.json").is_file()

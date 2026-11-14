@@ -17,6 +17,7 @@ judges see unless the API is hosted. Layout (web/src/core/api/client.ts), under 
     sites/{id}.json                     GET /sites/{id}
     sites/{id}/layers/{layer}/{date}.png
     sites/{id}/change/{from}_{to}.png   GET …/change.png, every consecutive pair (HH)
+    sites/{id}/change/{from}_{to}.json  GET …/change-stats, same pairs
     sites/{id}/points/{poi_id}.json     GET …/timeseries at each point of interest
     sites/{id}/stats.json               GET …/stats
     sites/{id}/ext/…                    the slope_echo files, copied
@@ -70,8 +71,10 @@ def _export_site(service: SiteService, source_dir: Path, out_dir: Path, site_id:
     change_dir = target / "change"
     change_dir.mkdir()
     for before, after in pairwise(site.dates):
-        png = service.change_png(site_id, before, after, "hh")
-        (change_dir / f"{before.isoformat()}_{after.isoformat()}.png").write_bytes(png)
+        name = f"{before.isoformat()}_{after.isoformat()}"
+        (change_dir / f"{name}.png").write_bytes(service.change_png(site_id, before, after, "hh"))
+        stats = service.change_stats(site_id, before, after, "hh")
+        (change_dir / f"{name}.json").write_text(stats.model_dump_json(indent=2))
 
     points_dir = target / "points"
     points_dir.mkdir()

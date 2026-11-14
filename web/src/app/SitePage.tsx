@@ -1,164 +1,177 @@
-import { useCallback, useMemo, useState } from 'react'
-import { isStatic } from '../core/api/client'
 import { SarMap } from '../core/map/SarMap'
-import type { MapMarker } from '../core/map/SarMap'
-import { usePreloadImages } from '../core/map/usePreloadImages'
-import { PoiList } from '../features/chart/components/PoiList'
-import { PointChart } from '../features/chart/components/PointChart'
-import { StatCards } from '../features/chart/components/StatCards'
-import { LayerControls } from '../features/compare/components/LayerControls'
-import { Legend } from '../features/compare/components/Legend'
-import { SwipeCompare } from '../features/compare/components/SwipeCompare'
-import { LAYER_LABELS } from '../features/compare/model/layers'
-import { TimeSlider } from '../features/map/components/TimeSlider'
-import { changeUrl, layerUrl, useStats, useTimeSeries } from '../features/sites/api'
-import type { PointQuery } from '../features/sites/api'
-import type { LayerId, PointOfInterest, Site } from '../features/sites/model/types'
-import { StoryPanel } from '../features/story/components/StoryPanel'
+import type { Corners } from '../core/map/SarMap'
+import { ExposureCard } from '../features/exposure/components/ExposureCard'
+import { paths } from '../core/api/client'
+import { useRain } from '../features/sites/api'
+import type { SiteDetail, SiteSummary } from '../features/sites/model/types'
+import { DataLimits } from '../features/story/components/DataLimits'
+import { Screen, SourceLink } from '../features/story/components/Screen'
+import { PROJECT } from '../features/story/content'
+import { RainTimeline } from '../features/timeline/components/RainTimeline'
+import { Explorer } from './Explorer'
+import { toMapOverlays } from './mapOverlays'
+import './SitePage.css'
 
-// Composition root for one site: owns view state and wires features together.
-// Features never import each other's components; they meet here.
-// App mounts it with key={site.id}, so all view state resets when the site changes.
+// Composition root for one site: the 8-screen story. Features never import each other's
+// components; they meet here. App mounts it with key={site.id}.
 
-function nearestPoi(points: PointOfInterest[], lon: number, lat: number) {
-  let best: PointOfInterest | undefined
-  let bestD = Infinity
-  for (const p of points) {
-    const d = (p.lon - lon) ** 2 + (p.lat - lat) ** 2
-    if (d < bestD) [best, bestD] = [p, d]
-  }
-  return best
+type Params = Record<string, string | undefined>
+interface Props {
+  site: SiteDetail
+  sites: SiteSummary[]
+  research: boolean
+  params: Params
+  setParams: (p: Params) => void
 }
 
-export function SitePage({ site }: { site: Site }) {
-  const n = site.dates.length
-  const [layer, setLayer] = useState<LayerId>(site.layers[0] ?? 'hh')
-  const [dateIndex, setDateIndex] = useState(0)
-  const [opacity, setOpacity] = useState(0.85)
-  const [compare, setCompare] = useState(false)
-  const [showChange, setShowChange] = useState(false)
-  const [fromIndex, setFromIndex] = useState(0)
-  const [toIndex, setToIndex] = useState(Math.max(0, n - 1))
-  const [point, setPoint] = useState<(PointQuery & { label: string }) | null>(null)
+function around([lon, lat]: [number, number], d: number): Corners {
+  return [
+    [lon - d, lat + d * 0.7],
+    [lon + d, lat + d * 0.7],
+    [lon + d, lat - d * 0.7],
+    [lon - d, lat - d * 0.7],
+  ]
+}
 
-  const stats = useStats(site.id)
-  const series = useTimeSeries(site.id, point)
-
-  const date = site.dates[dateIndex]
-  const from = site.dates[fromIndex]
-  const to = site.dates[toIndex]
-  const label = LAYER_LABELS[layer] ?? layer
-
-  usePreloadImages(useMemo(() => site.dates.map((d) => layerUrl(site.id, layer, d)), [site.id, site.dates, layer]))
-
-  const markers: MapMarker[] = useMemo(
-    () => site.points_of_interest.map((p) => ({ id: p.id, lon: p.lon, lat: p.lat, label: p.name })),
-    [site.points_of_interest],
-  )
-
-  const selectPoi = useCallback((p: PointOfInterest) => {
-    setPoint({ lon: p.lon, lat: p.lat, poiId: p.id, label: p.name })
-  }, [])
-
-  const onMapClick = useCallback(
-    (lon: number, lat: number) => {
-      if (!isStatic) return setPoint({ lon, lat, label: `${lat.toFixed(3)}, ${lon.toFixed(3)}` })
-      // Static files only hold pre-computed points, so snap to the nearest one.
-      const p = nearestPoi(site.points_of_interest, lon, lat)
-      if (p) setPoint({ lon: p.lon, lat: p.lat, poiId: p.id, label: `${p.name} (nearest pre-computed point)` })
-    },
-    [site.points_of_interest],
-  )
-  const onMarkerClick = useCallback(
-    (id: string) => {
-      const p = site.points_of_interest.find((x) => x.id === id)
-      if (p) selectPoi(p)
-    },
-    [site.points_of_interest, selectPoi],
-  )
-
-  if (n === 0) return <p className="state-msg">This site has no acquisitions yet.</p>
+export function SitePage({ site, sites, research, params, setParams }: Props) {
+  const se = site.slope_echo
+  const rain = useRain(site)
+  const exposureOverlays = se ? toMapOverlays(site, se.overlays.filter((o) => ['exposure', 'aoi', 'scar'].includes(o.id))) : null
+  const last = site.dates[site.dates.length - 1]
 
   return (
     <div className="site-page">
-      <aside className="site-page__sidebar">
-        <section className="panel">
-          <h3>Radar layer</h3>
-          <LayerControls
-            layers={site.layers}
-            layer={layer}
-            onLayer={setLayer}
-            opacity={opacity}
-            onOpacity={setOpacity}
-            showChange={showChange}
-            onShowChange={setShowChange}
-            compare={compare}
-            onCompare={setCompare}
-            dates={site.dates}
-            fromIndex={fromIndex}
-            toIndex={toIndex}
-            onFrom={setFromIndex}
-            onTo={setToIndex}
-          />
-        </section>
-        <section className="panel">
-          <h3>Legend</h3>
-          <Legend layer={layer} showChange={showChange} />
-        </section>
-        <section className="panel">
-          <h3>Story</h3>
-          <StoryPanel siteName={site.name} />
-        </section>
-      </aside>
-
-      <main className="site-page__map">
-        {compare ? (
-          <SwipeCompare
-            corners={site.corners}
-            left={{ imageUrl: layerUrl(site.id, layer, from), badge: `${label} · ${from}` }}
-            right={{ imageUrl: layerUrl(site.id, layer, to), badge: `${label} · ${to}` }}
-            markers={markers}
-            onMapClick={onMapClick}
-            onMarkerClick={onMarkerClick}
-          />
-        ) : (
+      {/* 1 · Hero */}
+      <section className="hero" aria-labelledby="hero-title">
+        <div className="hero__map">
           <SarMap
-            corners={site.corners}
-            imageUrl={layerUrl(site.id, layer, date)}
-            imageOpacity={opacity}
-            overlayUrl={showChange ? changeUrl(site.id, from, to) : null}
-            badge={showChange ? `${label} · ${date}  |  change ${from} → ${to}` : `${label} · ${date}`}
-            markers={markers}
-            onMapClick={onMapClick}
-            onMarkerClick={onMarkerClick}
+            corners={around(site.center, 2.5)}
+            interactive={false}
+            showControls={false}
+            markers={sites.map((s) => ({ id: s.id, lon: s.center[0], lat: s.center[1], label: s.name }))}
+            onMarkerClick={(id) => setParams({ site: id })}
+            padding={0}
           />
-        )}
-      </main>
+        </div>
+        <div className="hero__text">
+          <p className="hero__kicker">
+            {PROJECT.name} · NISAR radar · {se ? `${se.region}, ${se.country}` : site.name}
+          </p>
+          <h1 id="hero-title">{PROJECT.tagline}</h1>
+          <p className="hero__lede">
+            {se
+              ? `${se.event.date}: ${se.event.label}. Follow the rain, the radar and the people below the slope.`
+              : site.name}
+          </p>
+          <div className="hero__cta">
+            <a className="btn btn--primary" href="#radar">
+              See what the radar saw
+            </a>
+            <a className="btn" href="#data">
+              What we know and don't
+            </a>
+          </div>
+        </div>
+      </section>
 
-      <footer className="site-page__bottom">
-        {!compare && (
-          <section className="panel site-page__time">
-            <h3>Time</h3>
-            <TimeSlider dates={site.dates} index={dateIndex} onChange={setDateIndex} />
-          </section>
+      {/* 2 · Place */}
+      <Screen id="place" n={2} title={se ? `${site.name}` : 'The place'} text={se?.story.place} research={research}>
+        {se ? (
+          <ul className="facts">
+            <li className="panel event-card">
+              <strong>{se.event.date}</strong>
+              <span>{se.event.label}</span>
+              <SourceLink source={se.event.source} />
+            </li>
+            {se.facts.map((f) => (
+              <li key={f.text} className="panel">
+                <span>{f.text}</span>
+                <SourceLink source={f.source} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="state-msg">No story for this site yet.</p>
         )}
-        <section className="panel">
-          <h3>Change {from} → {to}</h3>
-          <StatCards stats={stats} from={from} to={to} />
-        </section>
-        <section className="panel">
-          <h3>{point ? point.label : 'Point over time'}</h3>
-          <PointChart
-            data={series}
-            currentDate={compare ? undefined : date}
-            emptyHint="Click the map or a place below to see how it changed."
-          />
-        </section>
-        <section className="panel">
-          <h3>Places</h3>
-          <PoiList points={site.points_of_interest} selectedId={point?.poiId} onSelect={selectPoi} />
-        </section>
-      </footer>
+      </Screen>
+
+      {/* 3 · Rain */}
+      <Screen id="rain" n={3} title="Rain loads it" text={se?.story.rain} research={research}>
+        <div className="panel">
+          <RainTimeline rain={rain} passes={site.dates} event={se ? { date: se.event.date, label: se.event.label } : undefined} />
+          {se?.rain && (
+            <p className="muted site-page__note">
+              {se.rain.note} <SourceLink source={se.rain.source} />
+            </p>
+          )}
+        </div>
+      </Screen>
+
+      {/* 4 + 5 · Radar and tracking */}
+      <Explorer site={site} research={research} params={params} setParams={setParams} />
+
+      {/* 6 · Exposure */}
+      <Screen id="exposure" n={6} title="People live below it" text={se?.story.exposure} research={research}>
+        <div className="exposure-screen">
+          <div className="exposure-screen__map">
+            <SarMap
+              corners={site.corners}
+              imageUrl={last ? paths.layer(site.id, 'hh', last) : null}
+              imageOpacity={0.45}
+              vectors={exposureOverlays?.vectors}
+              badge={last ? `HH · ${last}${site.source === 'demo' ? ' · DEMO' : ''}` : undefined}
+            />
+          </div>
+          <div className="panel">
+            <ExposureCard exposure={se?.exposure ?? null} research={research} />
+          </div>
+        </div>
+      </Screen>
+
+      {/* 7 · Around the world */}
+      <Screen id="world" n={7} title="Same tool, any slope" research={research}>
+        <p className="screen__text">
+          Every site uses the same template: add its files and one entry in the data, and this page works for it. We
+          start with Kyrgyzstan.
+        </p>
+        <ul className="site-cards">
+          {sites.map((s) => (
+            <li key={s.id}>
+              <button
+                type="button"
+                className="panel site-card"
+                aria-pressed={s.id === site.id}
+                onClick={() => {
+                  setParams({ site: s.id, layer: undefined, f: undefined, pt: undefined, a: undefined, b: undefined })
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+              >
+                <strong>{s.name}</strong>
+                <span className="muted">
+                  {s.change_type}
+                  {s.source === 'demo' ? ' · demo data' : ''}
+                </span>
+              </button>
+            </li>
+          ))}
+          {sites.length < 2 && (
+            <li className="panel site-card site-card--next">
+              <strong>Next region</strong>
+              <span className="muted">Being checked against NISAR coverage.</span>
+            </li>
+          )}
+        </ul>
+      </Screen>
+
+      {/* 8 · Data and limits */}
+      <Screen id="data" n={8} title="What we know and what we don't" research={research}>
+        <DataLimits site={site} research={research} />
+        <p>
+          <a className="btn" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+            Open field brief (print / PDF)
+          </a>
+        </p>
+      </Screen>
     </div>
   )
 }

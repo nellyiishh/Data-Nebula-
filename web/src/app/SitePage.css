@@ -1,0 +1,111 @@
+.hero {
+  position: relative;
+  min-height: min(88vh, 760px);
+  display: flex;
+  align-items: flex-end;
+}
+.hero__map {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+}
+.hero__text {
+  position: relative;
+  padding: var(--space-6) var(--space-4) calc(var(--space-6) * 2);
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  pointer-events: none;
+}
+.hero__text a {
+  pointer-events: auto;
+}
+.hero__kicker {
+  font-family: var(--font-mono);
+  color: var(--accent-2);
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+}
+.hero h1 {
+  font-size: clamp(30px, 6vw, 64px);
+  line-height: 1.05;
+  margin: 0 0 var(--space-3);
+  max-width: 16ch;
+}
+.hero__lede {
+  font-size: 18px;
+  color: var(--text-muted);
+  max-width: 60ch;
+  margin: 0 0 var(--space-4);
+}
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+a.btn {
+  text-decoration: none;
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+}
+
+.site-page__note {
+  font-size: 12px;
+  margin: var(--space-2) 0 0;
+}
+
+.exposure-screen {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: var(--space-3);
+  align-items: start;
+}
+.exposure-screen__map {
+  position: relative;
+  height: 420px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.site-cards {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+.site-card {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+.site-card[aria-pressed='true'] {
+  border-color: var(--accent);
+}
+.site-card--next {
+  border-style: dashed;
+  cursor: default;
+}
+
+@media (max-width: 900px) {
+  .exposure-screen {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The hero map is decoration; if WebGL is missing, the error would cover the headline. */
+.hero__map .sar-map__error {
+  display: none;
+}

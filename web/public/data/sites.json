@@ -1,11 +1,12 @@
 [
   {
-    "id": "demo-site",
-    "name": "Demo site (FAKE data)",
+    "id": "togus-bulak",
+    "name": "Togus-Bulak landslide",
     "center": [
-      77,
-      43.15
+      73.55,
+      40.55
     ],
-    "change_type": "mudflow"
+    "change_type": "landslide",
+    "source": "demo"
   }
 ]

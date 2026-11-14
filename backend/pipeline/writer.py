@@ -5,7 +5,6 @@ API never needs to know where the numbers came from.
 """
 
 import datetime as dt
-import math
 import shutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -15,7 +14,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from app.core.geo import mercator_to_lonlat
-from app.features.sites.models import MercatorBounds
+from app.features.sites.models import MercatorBounds, pixel_area_km2_by_row
 from app.features.sites.rendering import (
     WATER_THRESHOLD_DB,
     encode_png,
@@ -154,18 +153,6 @@ def _site_detail(meta: SiteMeta, bounds_merc: MercatorBounds) -> SiteDetail:
     )
 
 
-def _pixel_area_km2_by_row(
-    shape: tuple[int, ...], bounds_merc: MercatorBounds
-) -> NDArray[np.float64]:
-    """True ground area of one pixel in each row. Mercator stretches distances by
-    1/cos(latitude), so each Mercator square metre covers cos²(lat) real square metres."""
-    _, rows, cols = shape
-    xmin, ymin, xmax, ymax = bounds_merc
-    width, height = (xmax - xmin) / cols, (ymax - ymin) / rows
-    lats = [mercator_to_lonlat(0.0, ymax - (r + 0.5) * height)[1] for r in range(rows)]
-    return np.array([width * height * math.cos(math.radians(lat)) ** 2 / 1e6 for lat in lats])
-
-
 def _mean_db(layer: NDArray[np.floating]) -> float | None:
     finite = layer[np.isfinite(layer)]
     if finite.size == 0:
@@ -174,7 +161,7 @@ def _mean_db(layer: NDArray[np.floating]) -> float | None:
 
 
 def _site_stats(meta: SiteMeta, hh: Cube, hv: Cube, bounds_merc: MercatorBounds) -> SiteStats:
-    row_area = _pixel_area_km2_by_row(hh.shape, bounds_merc)
+    row_area = pixel_area_km2_by_row((hh.shape[1], hh.shape[2]), bounds_merc)
     series = [
         StatsEntry(
             date=acquisition.date,

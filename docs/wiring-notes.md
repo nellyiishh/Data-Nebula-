@@ -6,6 +6,7 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 |---|---|---|
 | `GET /api/v1/health` | Wired | |
 | `GET /api/v1/sites…` (list, detail, stats, layers, change, timeseries) | Wired | Serves whatever the pipeline wrote to `data/derived/` |
+| `GET /sites/{id}/change-stats?from=&to=` | Wired (backend); **web does not read it yet** `TODO(change-stats-api)` | Share and ground area of pixels that got darker / brighter (same rule as `change.png`: 3×3 mean, ≥ 3 dB) and the mean ΔdB. HH or HV backscatter only: no coherence, motion or radar-blind share. Static export writes `change/{from}_{to}.json` beside each PNG for every consecutive pair |
 | `demo-reservoir` site | **Demo data**, local only | Synthetic (`pipeline/make_demo_site.py`), `source: "demo"`. The UI must label it as not real. Not in `data/web/`: export with `--site toguz-bulak` so it stays out |
 | IMERG rain (`pipeline/rain.py`) | Wired; real data for toguz-bulak | Writes `data/ext/<site>/rain.json` (one 0.1° cell, 30 days before the first pass → last pass). Every request is 403 until the Earthdata account accepts the GES DISC terms once. After the file exists, set `slope_echo.rain` in the manifest and rerun `prepare_nisar` |
 | Real NISAR site `toguz-bulak` | Wired (pipeline), exported to `data/web/` | `data/manifest.json`: track 156 A, frame 022, 6 PROVISIONAL GCOV passes 12 Aug – 11 Oct 2026 (event 10 Oct). Earthdata login read from `backend/.env` (EARTHDATA_* only). |

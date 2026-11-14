@@ -6,10 +6,12 @@ from numpy.typing import NDArray
 
 from app.core.errors import ErrorCode, NotFoundError, UnprocessableError
 from app.core.geo import lonlat_to_mercator
-from app.features.sites.models import SiteStack
-from app.features.sites.rendering import change_rgba, encode_png
+from app.features.sites.display import CHANGE_THRESHOLD_DB
+from app.features.sites.models import SiteStack, pixel_area_km2_by_row
+from app.features.sites.rendering import change_masks, change_rgba, encode_png
 from app.features.sites.repository import SiteRepository
 from app.features.sites.schemas import (
+    ChangeStats,
     LayerName,
     PointTimeseries,
     Polarization,
@@ -67,14 +69,50 @@ class SiteService:
     def change_png(
         self, site_id: str, date_from: dt.date, date_to: dt.date, polarization: Polarization
     ) -> bytes:
+        _, before, after = self._pair(site_id, date_from, date_to, polarization)
+        return encode_png(change_rgba(before, after))
+
+    def change_stats(
+        self, site_id: str, date_from: dt.date, date_to: dt.date, polarization: Polarization
+    ) -> ChangeStats:
+        stack, before, after = self._pair(site_id, date_from, date_to, polarization)
+        diff, darker, brighter = change_masks(before, after)
+        valid = np.isfinite(diff)
+        n_valid = int(valid.sum())
+        row_area = pixel_area_km2_by_row(diff.shape, stack.bounds_merc)
+
+        def pct(mask: NDArray[np.bool_]) -> float:
+            return round(100.0 * int(mask.sum()) / n_valid, 1) if n_valid else 0.0
+
+        def km2(mask: NDArray[np.bool_]) -> float:
+            return round(float((mask.sum(axis=1) * row_area).sum()), 4)
+
+        return ChangeStats(
+            site_id=site_id,
+            date_from=date_from,
+            to=date_to,
+            polarization=polarization,
+            threshold_db=CHANGE_THRESHOLD_DB,
+            valid_pct=round(100.0 * n_valid / valid.size, 1),
+            darker_pct=pct(darker),
+            brighter_pct=pct(brighter),
+            changed_pct=pct(darker | brighter),
+            darker_km2=km2(darker),
+            brighter_km2=km2(brighter),
+            changed_km2=km2(darker | brighter),
+            mean_delta_db=round(float(diff[valid].mean()), 2) if n_valid else None,
+        )
+
+    def _pair(
+        self, site_id: str, date_from: dt.date, date_to: dt.date, polarization: Polarization
+    ) -> tuple[SiteStack, NDArray[np.float32], NDArray[np.float32]]:
+        """The stack and its two layers for a pair of dates; 404 if either date is unknown."""
         site = self.get_site(site_id)
         _require_date(site, date_from)
         _require_date(site, date_to)
         stack = self._stack(site_id)
         cube = stack.hh if polarization == "hh" else stack.hv
-        before = cube[stack.dates.index(date_from)]
-        after = cube[stack.dates.index(date_to)]
-        return encode_png(change_rgba(before, after))
+        return stack, cube[stack.dates.index(date_from)], cube[stack.dates.index(date_to)]
 
     def point_timeseries(self, site_id: str, lon: float, lat: float) -> PointTimeseries:
         stack = self._stack(site_id)

@@ -75,15 +75,23 @@ def smoothed_difference(before: FloatArray, after: FloatArray) -> FloatArray:
     return np.where(np.isfinite(diff), _box_mean_3x3(diff), np.nan)
 
 
+def change_masks(
+    before: FloatArray, after: FloatArray, threshold_db: float = CHANGE_THRESHOLD_DB
+) -> tuple[FloatArray, NDArray[np.bool_], NDArray[np.bool_]]:
+    """(smoothed difference, darker, brighter): pixels whose smoothed backscatter moved by
+    at least threshold_db. The change image and the change numbers both come from this."""
+    diff = smoothed_difference(before, after)
+    finite = np.isfinite(diff)
+    delta = np.where(finite, diff, 0.0)
+    return diff, finite & (delta <= -threshold_db), finite & (delta >= threshold_db)
+
+
 def change_rgba(
     before: FloatArray, after: FloatArray, threshold_db: float = CHANGE_THRESHOLD_DB
 ) -> RGBA:
     """Colours only pixels whose smoothed backscatter moved by at least threshold_db."""
-    diff = smoothed_difference(before, after)
-    finite = np.isfinite(diff)
-    delta = np.where(finite, diff, 0.0)
-    darker = finite & (delta <= -threshold_db)
-    brighter = finite & (delta >= threshold_db)
+    diff, darker, brighter = change_masks(before, after, threshold_db)
+    delta = np.nan_to_num(diff)
     strength = np.clip(np.abs(delta) / (3 * threshold_db), 0.4, 1.0)
 
     rgba = np.zeros((*diff.shape, 4), dtype=np.uint8)

@@ -1,8 +1,11 @@
 import datetime as dt
+import math
 from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
+
+from app.core.geo import mercator_to_lonlat
 
 MercatorBounds = tuple[float, float, float, float]  # xmin, ymin, xmax, ymax in EPSG:3857 metres
 
@@ -18,6 +21,18 @@ def pixel_at(
     col = min(int((x - xmin) / (xmax - xmin) * cols), cols - 1)
     row = min(int((ymax - y) / (ymax - ymin) * rows), rows - 1)
     return row, col
+
+
+def pixel_area_km2_by_row(
+    shape: tuple[int, int], bounds_merc: MercatorBounds
+) -> NDArray[np.float64]:
+    """True ground area of one pixel in each row. Mercator stretches distances by
+    1/cos(latitude), so each Mercator square metre covers cos²(lat) real square metres."""
+    rows, cols = shape
+    xmin, ymin, xmax, ymax = bounds_merc
+    width, height = (xmax - xmin) / cols, (ymax - ymin) / rows
+    lats = [mercator_to_lonlat(0.0, ymax - (r + 0.5) * height)[1] for r in range(rows)]
+    return np.array([width * height * math.cos(math.radians(lat)) ** 2 / 1e6 for lat in lats])
 
 
 @dataclass(frozen=True)

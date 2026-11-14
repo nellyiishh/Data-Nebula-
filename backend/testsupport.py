@@ -12,6 +12,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from app.features.sites.schemas import Acquisition, PointOfInterest
+from app.features.sites.slope_echo import SlopeEcho
 from pipeline.writer import SiteMeta, write_site
 
 TINY_SITE_ID = "tiny-site"
@@ -49,3 +50,100 @@ def build_tiny_site(data_dir: Path) -> Path:
         attribution="Synthetic test data",
     )
     return write_site(data_dir, meta, hh=hh, hv=hv, bounds_merc=TINY_BOUNDS)
+
+
+# ---- A tiny landslide site with a full Slope Echo block ---------------------------------
+
+TINY_SLIDE_ID = "tiny-slide"
+# Every file the block below references under ext/, with its content.
+TINY_EXT_FILES = {
+    "coherence/2026-06-20_2026-07-02.png": b"\x89PNG fake",
+    "scar.geojson": b'{"type": "FeatureCollection", "features": []}',
+    "rain.json": b'{"series": [{"date": "2026-06-20", "mm": 4.2}]}',
+    "raw/2026-06-20_linear.png": b"\x89PNG fake",
+    "points/p1.json": b'{"series": []}',
+}
+
+
+def tiny_slope_echo() -> dict:
+    source = {"name": "Test source"}
+    return {
+        "region": "Test region",
+        "country": "Kyrgyzstan",
+        "event": {"date": "2026-07-01", "label": "Test slide", "source": source},
+        "facts": [{"text": "One fact", "source": source}],
+        "story": {
+            key: {"explore": f"{key} plain", "research": f"{key} detail"}
+            for key in ("place", "rain", "radar", "tracking", "exposure")
+        },
+        "layers": [
+            {
+                "id": "coherence",
+                "kind": "coherence",
+                "title": "Coherence",
+                "unit": "0–1",
+                "description": "How alike two passes are.",
+                "source": source,
+                "frames": [
+                    {
+                        "from": "2026-06-20",
+                        "to": "2026-07-02",
+                        "file": "ext/coherence/2026-06-20_2026-07-02.png",
+                    }
+                ],
+                "legend": {"colors": ["#000000", "#ffffff"], "labels": ["changed", "stable"]},
+            }
+        ],
+        "overlays": [
+            {
+                "id": "scar",
+                "kind": "polygon",
+                "title": "Scar",
+                "file": "ext/scar.geojson",
+                "description": "Mapped scar.",
+                "source": source,
+            }
+        ],
+        "rain": {"file": "ext/rain.json", "source": source, "note": "Regional rain."},
+        "raw_example": {
+            "linear": "ext/raw/2026-06-20_linear.png",
+            "db": "layers/hh/2026-06-20.png",
+            "date": "2026-06-20",
+        },
+        "point_extras": {"p1": "ext/points/p1.json"},
+        "exposure": None,
+        "validation": None,
+        "limitations": ["Test limit"],
+    }
+
+
+def write_tiny_ext(ext_dir: Path) -> Path:
+    for relative, content in TINY_EXT_FILES.items():
+        path = ext_dir / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+    return ext_dir
+
+
+def build_tiny_landslide(
+    data_dir: Path,
+    ext_dir: Path,
+    slope_echo: dict | None = None,
+    blind_mask: NDArray[np.bool_] | None = None,
+) -> Path:
+    hh, hv = tiny_stack()
+    meta = SiteMeta(
+        id=TINY_SLIDE_ID,
+        name="Tiny landslide",
+        change_type="landslide",
+        source="demo",
+        acquisitions=[
+            Acquisition(date=d, granule_id=None, band="L", polarizations=["HH", "HV"])
+            for d in TINY_DATES
+        ],
+        points_of_interest=[PointOfInterest(id="p1", name="Scar", lon=0.0005, lat=0.0045)],
+        attribution="Synthetic test data",
+        slope_echo=SlopeEcho.model_validate(slope_echo or tiny_slope_echo()),
+        ext_dir=ext_dir,
+    )
+    return write_site(data_dir, meta, hh=hh, hv=hv, bounds_merc=TINY_BOUNDS, blind_mask=blind_mask)

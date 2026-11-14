@@ -1,0 +1,98 @@
+{
+  "radius_km": 100.0,
+  "center": "Toguz-Bulak village",
+  "reports_found": 26,
+  "fetched": "2026-11-14",
+  "entries": [
+    {
+      "date": "2017-06-29",
+      "type": "mudslide, rain",
+      "name": "Mudslide inundates houses (98 km NW)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "http://akipress.com/news:594171"
+      }
+    },
+    {
+      "date": "2017-05-11",
+      "type": "landslide, rain",
+      "name": "Landslide in Jalpak-Tash village (25 km W)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "https://akipress.com/news:592329/"
+      }
+    },
+    {
+      "date": "2017-04-30",
+      "type": "landslide, rain",
+      "name": "Landslide at Kurulush village (45 km S)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "http://akipress.com/news:591940/"
+      }
+    },
+    {
+      "date": "2017-04-29",
+      "type": "translational slide, downpour",
+      "name": "Mayor landslide at Ayu village (48 km N)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AGU Landslide Blog",
+        "url": "http://blogs.agu.org/landslideblog/2017/05/02/ayu-1/"
+      }
+    },
+    {
+      "date": "2017-04-23",
+      "type": "landslide, rain",
+      "name": "Fatal landslide in Jany-Hayat village (99 km NW)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "http://akipress.com/news:591627/"
+      }
+    },
+    {
+      "date": "2017-04-23",
+      "type": "landslide",
+      "name": "Massive landslide hits Kurbu-Tash village (31 km N)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AGU Landslide Blog",
+        "url": "http://blogs.agu.org/landslideblog/2017/05/17/kurbu-tash-landslide/"
+      }
+    },
+    {
+      "date": "2017-04-22",
+      "type": "mudslide, rain",
+      "name": "Significant mudslides in Kalta village (50 km NW)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "https://akipress.com/news:591624/"
+      }
+    },
+    {
+      "date": "2017-04-18",
+      "type": "mudslide, continuous rain",
+      "name": "Mudslides in Suzak (76 km NW)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "https://akipress.com/news:591484/"
+      }
+    },
+    {
+      "date": "2017-04-17",
+      "type": "landslide, rain",
+      "name": "Landslide in Chyrmash (37 km N)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "http://akipress.com/news:591338/"
+      }
+    },
+    {
+      "date": "2017-04-16",
+      "type": "landslide, rain",
+      "name": "Landslide hits Kysyk-Alma village (36 km NW)",
+      "source": {
+        "name": "NASA COOLR (GLC) · AKI Press",
+        "url": "https://akipress.com/news:591396/"
+      }
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "togus-bulak",
+    "name": "Togus-Bulak landslide",
+    "center": [
+      73.55,
+      40.55
+    ],
+    "change_type": "landslide",
+    "source": "demo"
+  }
+]

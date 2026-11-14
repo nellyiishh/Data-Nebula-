@@ -23,6 +23,7 @@ class ErrorCode(StrEnum):
     SITE_NOT_FOUND = "site.not_found"
     DATE_NOT_FOUND = "date.not_found"
     LAYER_NOT_FOUND = "layer.not_found"
+    FILE_NOT_FOUND = "file.not_found"
     POINT_OUTSIDE_SITE = "point.outside_site"
     INTERNAL = "internal.error"
 

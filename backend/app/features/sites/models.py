@@ -7,6 +7,19 @@ from numpy.typing import NDArray
 MercatorBounds = tuple[float, float, float, float]  # xmin, ymin, xmax, ymax in EPSG:3857 metres
 
 
+def pixel_at(
+    bounds_merc: MercatorBounds, shape: tuple[int, int], x: float, y: float
+) -> tuple[int, int] | None:
+    """(row, col) of the grid pixel containing Mercator point (x, y), or None if outside."""
+    xmin, ymin, xmax, ymax = bounds_merc
+    if not (xmin <= x <= xmax and ymin <= y <= ymax):
+        return None
+    rows, cols = shape
+    col = min(int((x - xmin) / (xmax - xmin) * cols), cols - 1)
+    row = min(int((ymax - y) / (ymax - ymin) * rows), rows - 1)
+    return row, col
+
+
 @dataclass(frozen=True)
 class SiteStack:
     """Backscatter cubes for one site: shape (dates, rows, cols), values in dB, NaN = no data.
@@ -22,10 +35,5 @@ class SiteStack:
 
     def pixel_at(self, x: float, y: float) -> tuple[int, int] | None:
         """(row, col) of the pixel containing Mercator point (x, y), or None if outside."""
-        xmin, ymin, xmax, ymax = self.bounds_merc
-        if not (xmin <= x <= xmax and ymin <= y <= ymax):
-            return None
         _, rows, cols = self.hh.shape
-        col = min(int((x - xmin) / (xmax - xmin) * cols), cols - 1)
-        row = min(int((ymax - y) / (ymax - ymin) * rows), rows - 1)
-        return row, col
+        return pixel_at(self.bounds_merc, (rows, cols), x, y)

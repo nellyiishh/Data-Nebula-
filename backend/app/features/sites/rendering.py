@@ -7,18 +7,16 @@ import numpy as np
 from numpy.typing import NDArray
 from PIL import Image
 
+from app.features.sites.display import (
+    BRIGHTER_RGB,
+    CHANGE_THRESHOLD_DB,
+    DARKER_RGB,
+    DB_RANGE,
+    RATIO_RANGE_DB,
+    WATER_RGBA,
+    WATER_THRESHOLD_DB,
+)
 from app.features.sites.schemas import Polarization
-
-# One fixed brightness range per polarization for every date, so an animation does not
-# flicker from per-image contrast stretching.
-DB_RANGE: dict[Polarization, tuple[float, float]] = {"hh": (-25.0, 0.0), "hv": (-32.0, -8.0)}
-RATIO_RANGE_DB = (0.0, 15.0)
-WATER_THRESHOLD_DB = -18.0
-CHANGE_THRESHOLD_DB = 3.0
-
-WATER_RGBA = (30, 144, 255, 170)
-DARKER_RGB = (215, 48, 39)  # surface got darker to radar: new water, harvest, burn scar
-BRIGHTER_RGB = (69, 117, 180)  # surface got brighter: water retreat, growth, buildings
 
 FloatArray = NDArray[np.floating]
 RGBA = NDArray[np.uint8]
@@ -68,16 +66,22 @@ def _box_mean_3x3(values: FloatArray) -> FloatArray:
     return np.where(count > 0, total / np.maximum(count, 1), np.nan)
 
 
+def smoothed_difference(before: FloatArray, after: FloatArray) -> FloatArray:
+    """after - before in dB, averaged over 3x3 pixels; NaN where either date has no data.
+
+    Radar speckle alone moves single pixels by more than 3 dB between dates, so change is
+    always judged on this smoothed difference (change images and validation alike)."""
+    diff = after - before
+    return np.where(np.isfinite(diff), _box_mean_3x3(diff), np.nan)
+
+
 def change_rgba(
     before: FloatArray, after: FloatArray, threshold_db: float = CHANGE_THRESHOLD_DB
 ) -> RGBA:
-    """Colours only pixels whose backscatter moved by at least threshold_db.
-
-    The difference is averaged over 3x3 pixels first: radar speckle alone moves single
-    pixels by more than 3 dB between dates, which would paint the map with random dots."""
-    diff = after - before
+    """Colours only pixels whose smoothed backscatter moved by at least threshold_db."""
+    diff = smoothed_difference(before, after)
     finite = np.isfinite(diff)
-    delta = np.where(finite, _box_mean_3x3(diff), 0.0)
+    delta = np.where(finite, diff, 0.0)
     darker = finite & (delta <= -threshold_db)
     brighter = finite & (delta >= threshold_db)
     strength = np.clip(np.abs(delta) / (3 * threshold_db), 0.4, 1.0)

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo-reservoir",
+    "name": "Demo reservoir (synthetic data)",
+    "center": [
+      72.88,
+      41.79
+    ],
+    "change_type": "water",
+    "source": "demo"
+  },
+  {
+    "id": "toguz-bulak",
+    "name": "Toguz-Bulak landslide",
+    "center": [
+      73.6275,
+      40.47250786485927
+    ],
+    "change_type": "landslide",
+    "source": "nisar"
+  }
+]

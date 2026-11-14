@@ -1,0 +1,73 @@
+.time-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.time-chart .grid {
+  stroke: var(--border);
+}
+.time-chart .axis {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+.time-chart .bar {
+  fill: var(--rain);
+}
+.time-chart .line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+.time-chart .dot {
+  fill: currentColor;
+}
+.time-chart .event line {
+  stroke: var(--event);
+  stroke-width: 2;
+}
+.time-chart .event text {
+  fill: var(--event);
+  font-size: 10px;
+  font-weight: 600;
+}
+.time-chart .cursor {
+  stroke: var(--accent-2);
+  stroke-dasharray: 3 3;
+}
+.time-chart .tick path {
+  fill: var(--text-muted);
+}
+.time-chart .tick.active path {
+  fill: var(--accent-2);
+}
+.time-chart .tick.clickable {
+  cursor: pointer;
+}
+.time-chart .tick.clickable:focus-visible path {
+  stroke: var(--text);
+}
+
+.chart-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.chart-key i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: var(--space-1);
+  vertical-align: middle;
+}
+
+.poi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

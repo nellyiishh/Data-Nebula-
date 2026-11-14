@@ -1,0 +1,15 @@
+.frame-slider {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+.frame-slider input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+.frame-slider__label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}

@@ -81,7 +81,8 @@ data_nebula/
 ├── CLAUDE.md                  # this file (source of truth)
 ├── backend/                   # API service (+ pipeline/ for offline NISAR preprocessing)
 ├── web/                       # web client (interactive map, time series, story)
-├── data/                      # manifest.json committed; raw/ and derived/ gitignored
+├── data/                      # manifest.json + ext/ committed; raw/, derived/ gitignored;
+│                              #   web/ = website data from the export (served by web/ at /data)
 ├── contracts/                 # openapi.json (generated from backend, committed)
 ├── docs/
 │   ├── architecture.md        # how it fits together (pointer-only for rules)
@@ -96,10 +97,10 @@ data_nebula/
 |---|---|---|
 | Backend | Python 3.12+, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic, uv, ruff, pyright, pytest | Python 3.12, FastAPI, Pydantic v2 + pydantic-settings, numpy, Pillow, uv, ruff, pyright, pytest. Read-only API, no SQLAlchemy/Alembic |
 | Database | PostgreSQL; Redis only for cache/queues | None: the API serves files the pipeline wrote to `data/derived/` |
-| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | TBD |
+| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | React 19 + Vite + TS strict, oxlint; small `useJson` hook instead of TanStack Query; no tests yet (hackathon) |
 | Geo pipeline | Python: rasterio/GDAL, xarray + h5py (NISAR HDF5), asf_search / earthaccess for downloads; outputs COGs | `backend/pipeline/`: h5py, rasterio, scipy (uv group `pipeline`). Every source ends in `pipeline/writer.py:write_site` → PNG layers + `stack.npz`, no COGs |
 | Tile serving | TiTiler (COG → XYZ tiles) or pre-rendered static tiles | One pre-rendered transparent PNG per layer and date, placed by the site's four corners (EPSG:3857 grid) |
-| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | TBD |
+| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | MapLibre GL 6, CARTO dark basemap, own swipe compare and SVG chart (no extra deps) |
 | Auth | One identity provider; backend verifies tokens; web never trusts its own role checks | TBD |
 
 Commands live in §8 — keep them exact and runnable once the stack is set.
@@ -319,19 +320,24 @@ uv sync                                   # deps (add --group pipeline to proces
 uv run ruff check . && uv run ruff format --check .
 uv run pyright                            # types
 uv run pytest -m "not slow"               # fast lane (scope to touched feature path)
-uv run pytest                             # full suite — required before done
+uv run --group pipeline pytest            # full suite — required before done (the plain `uv run pytest` skips the pipeline tests)
 uv run python -m app.export_openapi       # regenerate contracts/openapi.json after any API change
 uv run python -m pipeline.make_demo_site  # synthetic demo site → data/derived/demo-reservoir/
-uv run python -m pipeline.prepare_nisar   # real NISAR → same files (TODO(nisar-pipeline))
+uv run python -m pipeline.prepare_nisar   # real NISAR → same files
+uv run --group pipeline python -m pipeline.rain --site <id>  # IMERG daily rain → data/ext/<id>/rain.json
+uv run --group pipeline python -m pipeline.exposure --site <id>  # OSM buildings/roads → data/ext/<id>/
+uv run --group pipeline python -m pipeline.optical --site <id>   # NASA HLS camera pictures → data/ext/<id>/
+uv run --group pipeline python -m pipeline.catalog --site <id>   # NASA COOLR reports nearby → data/ext/<id>/
+uv run python -m pipeline.export_static   # prepared sites → data/web/ (website data; web serves it at /data)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 
 # web/
 npm ci
-npm run lint && npm run typecheck
-npm test                                  # unit/component
-npm run test:e2e                          # Playwright (critical flows)
-npm run gen:api                           # regenerate client from contracts/openapi.json
-npm run dev
+npm run lint && npm run typecheck         # oxlint + tsc -b
+npm run build                             # tsc -b && vite build
+npm run fake-data                         # regenerate FAKE public/data/ (until the backend export exists)
+npm run dev                               # http://localhost:5173
+# not set up yet: npm test, npm run test:e2e, npm run gen:api
 ```
 
 - **CI gate (one workflow):** lint + format check + typecheck + full tests with coverage +

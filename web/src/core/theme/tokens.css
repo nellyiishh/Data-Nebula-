@@ -1,0 +1,130 @@
+/* Design tokens. Use these variables, never raw hex, in feature CSS (CLAUDE.md §3).
+   TRACE "Dark Earth Intelligence" palette: ~60% background/panels, ~25% map, ~10% teal
+   accent, ~5% data-layer colours. Red is NOT a generic danger colour; it is used only for
+   "radar got darker" on change maps and for errors. */
+:root {
+  --bg: #111a22; /* Deep Graphite — app background */
+  --surface: #182630; /* Slate Blue — side panels */
+  --surface-2: #202f39; /* Dark Steel — cards */
+  --surface-3: #263c45; /* hover / selected rows */
+  --border: #344550; /* Graphite Grey */
+  --text: #f0f4f5; /* Cloud White */
+  --text-muted: #a8b7bf;
+  --accent: #42b6a8; /* Ocean Teal — primary actions and navigation */
+  --accent-soft: #8acdb4; /* Mint Green — selection, secondary accent */
+  --accent-2: #e5b65c; /* Earth Gold — highlights, cursor, demo notice */
+
+  /* Data-layer colours */
+  --water: #4b91d1; /* Satellite Blue — water and rain */
+  --terrain: #a58bc6; /* Terrain Purple — relief change, the event */
+  --building: #e5b65c; /* Earth Gold — infrastructure */
+  --rain: var(--water);
+  --event: var(--terrain);
+  --scar: var(--terrain);
+  --stable: var(--accent-soft);
+  --hh: #7fb2e5;
+  --hv: var(--accent-soft);
+  --darker: #e05a4f;
+  --brighter: #4b91d1;
+  --danger: #e05a4f; /* errors only */
+
+  --radius: 8px;
+  --radius-card: 10px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Coordinates, dates, IDs and technical values */
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --sidebar-w: 340px;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 var(--font);
+}
+
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.btn {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: var(--accent);
+}
+.btn[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface-2));
+  border-color: var(--accent);
+  color: var(--text);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+h1,
+h2,
+h3 {
+  font-weight: 600;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+}
+.panel h3 {
+  margin: 0 0 var(--space-2);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+.state-msg {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.state-msg.error {
+  color: var(--danger);
+  font-style: normal;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+}
+.btn--primary:hover {
+  background: var(--accent-soft);
+}

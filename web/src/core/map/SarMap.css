@@ -1,0 +1,35 @@
+.sar-map {
+  position: absolute;
+  inset: 0;
+}
+.sar-map__canvas {
+  position: absolute;
+  inset: 0;
+}
+.sar-map__badge {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  pointer-events: none;
+}
+.sar-marker {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--text);
+  background: var(--accent-2);
+  cursor: pointer;
+  padding: 0;
+}
+.sar-map__error {
+  position: absolute;
+  inset: auto var(--space-6) 50% var(--space-6);
+  text-align: center;
+  overflow-wrap: anywhere;
+}

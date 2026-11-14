@@ -1,4 +1,5 @@
 import datetime as dt
+import mimetypes
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Path, Query
@@ -28,6 +29,8 @@ _INVALID: dict[int | str, dict[str, Any]] = {
 }
 _ERRORS = {**_NOT_FOUND, **_INVALID}
 _IMAGE_CACHE = {"Cache-Control": "public, max-age=3600"}
+# GeoJSON is not in every platform's mimetypes table.
+_EXTRA_TYPES = {".geojson": "application/geo+json"}
 
 
 @router.get(
@@ -109,3 +112,17 @@ def get_timeseries(
     lat: Annotated[float, Query(ge=-85, le=85)],
 ) -> PointTimeseries:
     return service.point_timeseries(site_id, lon, lat)
+
+
+@router.get(
+    "/{site_id}/files/{file_path:path}",
+    summary="A file of the site's story",
+    description="Files the slope_echo block points at (ext/…), plus layer images (layers/…). "
+    "Paths are the same as in the static export, relative to the site folder.",
+    response_class=FileResponse,
+    responses=_ERRORS,
+)
+def get_site_file(site_id: SiteId, file_path: str, service: SiteServiceDep) -> FileResponse:
+    path = service.site_file(site_id, file_path)
+    media_type = _EXTRA_TYPES.get(path.suffix) or mimetypes.guess_type(path.name)[0]
+    return FileResponse(path, media_type=media_type or "application/octet-stream")

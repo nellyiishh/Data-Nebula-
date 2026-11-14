@@ -77,8 +77,8 @@ mix, 5 coherence + 5 ground-motion pairs, radar-blind mask, raw example, one poi
 (village). 111 backend tests pass.
 
 **A. Backend can do now (no outside input)**
-1. **Exposure:** buildings and road length within 2 km of the slide from OpenStreetMap →
-   `data/ext/toguz-bulak/exposure.geojson` + the `exposure` numbers. Fills screen 06.
+1. ~~**Exposure**~~ **DONE:** `pipeline/exposure.py` → 14 buildings, 11.97 km of road within
+   2 km. Measured around the village point until a `slide` point exists (item 8); rerun then.
 2. **Optical before/after:** NASA HLS (Landsat + Sentinel-2) true colour for one cloud-free
    day each side of 10 Oct → `optical` layer. Fills Radar Vision (camera ↔ radar). Risk:
    clouds in October; say so if none is clear.

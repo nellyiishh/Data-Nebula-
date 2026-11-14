@@ -282,6 +282,17 @@
           "name": "Copernicus DEM GLO-30 (© DLR e.V., © Airbus; provided under COPERNICUS by the EU and ESA) + NISAR GCOV look geometry",
           "url": "https://registry.opendata.aws/copernicus-dem/"
         }
+      },
+      {
+        "id": "exposure",
+        "kind": "exposure",
+        "title": "Buildings and roads nearby",
+        "file": "ext/exposure.geojson",
+        "description": "Buildings (points) and drivable roads (lines) mapped in OpenStreetMap near the slide. Rural buildings are often missing from the map.",
+        "source": {
+          "name": "© OpenStreetMap contributors",
+          "url": "https://www.openstreetmap.org/copyright"
+        }
       }
     ],
     "rain": {
@@ -301,7 +312,18 @@
     "point_extras": {
       "village": "ext/points/village.json"
     },
-    "exposure": null,
+    "exposure": {
+      "radius_km": 2.0,
+      "buildings": 14,
+      "roads_km": 11.97,
+      "nearest_settlement": "Toguz-Bulak",
+      "distance_km": 0.0,
+      "method": "OpenStreetMap buildings (each counted once) and road length within 2 km of Toguz-Bulak village, fetched 2026-11-14. Roads are drivable classes clipped to the circle; footpaths are left out. The slide itself is not mapped yet, so this is measured around this point, not around the slide. Counts what is nearby: not a hazard or population estimate, and OpenStreetMap may miss buildings in rural areas.",
+      "source": {
+        "name": "© OpenStreetMap contributors",
+        "url": "https://www.openstreetmap.org/copyright"
+      }
+    },
     "validation": null,
     "limitations": [
       "The first pass after the slide is about 16 hours after it began; later movement is not in this stack.",

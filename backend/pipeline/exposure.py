@@ -15,6 +15,7 @@ import argparse
 import datetime as dt
 import json
 import math
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -92,14 +93,24 @@ def overpass_query(center: Center, radius_km: float) -> str:
     )
 
 
-def fetch_overpass(query: str) -> dict[str, Any]:
+# The public Overpass servers are often busy; these answers mean "try again shortly".
+RETRY_STATUSES = frozenset({429, 502, 503, 504})
+RETRY_WAITS_S = (10, 30)
+
+
+def fetch_overpass(query: str, sleep: Callable[[float], None] = time.sleep) -> dict[str, Any]:
     import requests  # pipeline-only dependency
 
-    response = requests.post(
-        OVERPASS_URL, data={"data": query}, headers={"User-Agent": USER_AGENT}, timeout=120
-    )
-    response.raise_for_status()
-    return response.json()
+    for wait in (*RETRY_WAITS_S, None):
+        response = requests.post(
+            OVERPASS_URL, data={"data": query}, headers={"User-Agent": USER_AGENT}, timeout=120
+        )
+        if response.status_code not in RETRY_STATUSES or wait is None:
+            response.raise_for_status()
+            return response.json()
+        log.warning("Overpass answered %d; retrying in %ds", response.status_code, wait)
+        sleep(wait)
+    raise AssertionError("unreachable")
 
 
 def _position(element: Element) -> tuple[float, float] | None:

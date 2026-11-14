@@ -16,10 +16,10 @@ from app.features.sites.models import MercatorBounds, pixel_at
 from app.features.sites.rendering import encode_png, smoothed_difference
 from app.features.sites.schemas import PointOfInterest
 from app.features.sites.slope_echo import (
+    Exposure,
     ExtFrame,
     ExtLayer,
     ExtOverlay,
-    Exposure,
     Legend,
     RawExample,
     SlopeEcho,

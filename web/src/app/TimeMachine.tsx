@@ -1,5 +1,6 @@
 import { LazyMount } from '../core/ui/LazyMount'
 import type { SiteDetail } from '../features/sites/model/types'
+import { FrameSlider } from '../features/timeline/components/FrameSlider'
 import { Screen } from '../features/story/components/Screen'
 import { DatePairControls, ExplorerMap, LayersPanel, PointBlock, TimelineBlock } from './ExplorerParts'
 import { useExplorerState } from './useExplorerState'
@@ -24,6 +25,10 @@ export function TimeMachine({ site, research, params, setParams }: Props) {
       <div className="explorer">
         <LazyMount className="explorer__map">
           <ExplorerMap site={site} s={s} />
+          {/* Phones: the map fills the screen, so Play lives on it. Desktop uses the panel below. */}
+          <div className="explorer__player">
+            <FrameSlider labels={s.layer.frames.map((f) => f.label)} index={s.fIdx} onChange={s.actions.setFrame} />
+          </div>
         </LazyMount>
         <aside className="explorer__side">
           <section className="panel">

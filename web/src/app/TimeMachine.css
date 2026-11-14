@@ -58,6 +58,34 @@
   .explorer__map {
     height: 62vh;
   }
+  .explorer__map .explorer__player {
+    display: block;
+  }
+  /* The overlay replaces the panel's slider; the rain chart stays in the panel. */
+  .tracking__time > .frame-slider {
+    display: none;
+  }
+}
+
+.explorer__player {
+  display: none;
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: var(--space-2);
+  z-index: 3;
+  padding: var(--space-2);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  backdrop-filter: blur(6px);
+}
+.explorer__player .btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.explorer__player input[type='range'] {
+  min-height: 44px;
 }
 
 .explorer__toggles {

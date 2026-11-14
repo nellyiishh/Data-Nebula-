@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { paths } from '../core/api/client'
 import { SarMap } from '../core/map/SarMap'
-import type { Corners } from '../core/map/SarMap'
+import { HeroBackdrop } from '../core/ui/HeroBackdrop'
 import { LazyMount } from '../core/ui/LazyMount'
 import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
@@ -31,15 +31,6 @@ interface Props {
   setParams: (p: Params) => void
 }
 
-function around([lon, lat]: [number, number], d: number): Corners {
-  return [
-    [lon - d, lat + d * 0.6],
-    [lon + d, lat + d * 0.6],
-    [lon + d, lat - d * 0.6],
-    [lon - d, lat - d * 0.6],
-  ]
-}
-
 export function SitePage({ site, sites, research, params, setParams }: Props) {
   const se = site.slope_echo
   const rain = useRain(site)
@@ -56,16 +47,7 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
     <div className="site-page">
       {/* 01 · Hero */}
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero__map">
-          <SarMap
-            corners={around(site.center, 14)}
-            interactive={false}
-            showControls={false}
-            markers={sites.map((s) => ({ id: s.id, lon: s.center[0], lat: s.center[1], label: s.name }))}
-            onMarkerClick={pickSite}
-            padding={0}
-          />
-        </div>
+        <HeroBackdrop />
         <div className="hero__text">
           <p className="hero__kicker">{PROJECT.name} · NASA-ISRO NISAR radar</p>
           <h1 id="hero-title">{PROJECT.tagline}</h1>

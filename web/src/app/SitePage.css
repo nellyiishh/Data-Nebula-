@@ -4,11 +4,7 @@
   display: flex;
   align-items: flex-end;
 }
-.hero__map {
-  position: absolute;
-  inset: 0;
-  opacity: 0.55;
-}
+
 .hero__text {
   position: relative;
   padding: var(--space-6) var(--space-4) calc(var(--space-6) * 2);
@@ -98,34 +94,4 @@ a.btn {
   .impact {
     grid-template-columns: 1fr;
   }
-}
-
-/* The hero map is decoration; if WebGL is missing, the error would cover the headline. */
-.hero__map .sar-map__error {
-  display: none;
-}
-
-.impact__side {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-.impact__side > .btn {
-  text-align: center;
-}
-.rain-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: var(--space-3);
-}
-.rain-stats .panel {
-  display: flex;
-  flex-direction: column;
-}
-.rain-stats strong {
-  font-size: 26px;
-  color: var(--rain);
-}
-.site-cards + .facts {
-  margin-top: var(--space-2);
 }

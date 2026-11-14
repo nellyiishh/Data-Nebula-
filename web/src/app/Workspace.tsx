@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Brand } from '../core/ui/Brand'
 import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
 import { ReportBody } from '../features/report/components/ReportBody'
@@ -49,10 +50,7 @@ export function Workspace({ site, sites, research, params, setParams }: Props) {
   return (
     <div className={`ws${leftOpen ? ' ws--left' : ''}${rightOpen ? ' ws--right' : ''}`}>
       <header className="ws__top">
-        <div className="ws__brand">
-          <strong>{PROJECT.name}</strong>
-          <span className="muted">{PROJECT.fullName}</span>
-        </div>
+        <Brand name={PROJECT.name} subtitle={PROJECT.fullName} href={`?site=${site.id}`} />
         <AreaSearch site={site} sites={sites} s={s} setParams={setParams} />
         <span className="ws__date mono" title="Observation shown on the map">
           {dateLabel}

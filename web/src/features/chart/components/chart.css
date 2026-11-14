@@ -1,0 +1,85 @@
+.point-chart {
+  margin: 0;
+}
+.point-chart svg {
+  width: 100%;
+  height: auto;
+}
+.point-chart .grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.point-chart .cursor {
+  stroke: var(--accent-2);
+  stroke-dasharray: 3 3;
+}
+.point-chart .axis {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+.point-chart path {
+  fill: none;
+  stroke-width: 2;
+}
+.point-chart path.hh {
+  stroke: var(--hh);
+}
+.point-chart path.hv {
+  stroke: var(--hv);
+}
+.point-chart .hh-dot {
+  fill: var(--hh);
+}
+.point-chart .hv-dot {
+  fill: var(--hv);
+}
+.point-chart figcaption {
+  font-size: 12px;
+}
+.point-chart .key.hh {
+  color: var(--hh);
+}
+.point-chart .key.hv {
+  color: var(--hv);
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.stat-card {
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  padding: var(--space-2);
+  font-size: 12px;
+}
+.stat-card__value {
+  font-size: 18px;
+  font-weight: 600;
+}
+.stat-card__delta {
+  font-family: var(--font-mono);
+  color: var(--accent-2);
+}
+.stat-cards__range {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 12px;
+}
+
+.poi-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.poi-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+}

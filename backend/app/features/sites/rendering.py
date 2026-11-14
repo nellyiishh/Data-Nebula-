@@ -66,16 +66,22 @@ def _box_mean_3x3(values: FloatArray) -> FloatArray:
     return np.where(count > 0, total / np.maximum(count, 1), np.nan)
 
 
+def smoothed_difference(before: FloatArray, after: FloatArray) -> FloatArray:
+    """after - before in dB, averaged over 3x3 pixels; NaN where either date has no data.
+
+    Radar speckle alone moves single pixels by more than 3 dB between dates, so change is
+    always judged on this smoothed difference (change images and validation alike)."""
+    diff = after - before
+    return np.where(np.isfinite(diff), _box_mean_3x3(diff), np.nan)
+
+
 def change_rgba(
     before: FloatArray, after: FloatArray, threshold_db: float = CHANGE_THRESHOLD_DB
 ) -> RGBA:
-    """Colours only pixels whose backscatter moved by at least threshold_db.
-
-    The difference is averaged over 3x3 pixels first: radar speckle alone moves single
-    pixels by more than 3 dB between dates, which would paint the map with random dots."""
-    diff = after - before
+    """Colours only pixels whose smoothed backscatter moved by at least threshold_db."""
+    diff = smoothed_difference(before, after)
     finite = np.isfinite(diff)
-    delta = np.where(finite, _box_mean_3x3(diff), 0.0)
+    delta = np.where(finite, diff, 0.0)
     darker = finite & (delta <= -threshold_db)
     brighter = finite & (delta >= threshold_db)
     strength = np.clip(np.abs(delta) / (3 * threshold_db), 0.4, 1.0)

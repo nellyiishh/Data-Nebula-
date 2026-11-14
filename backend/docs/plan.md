@@ -58,7 +58,7 @@ water story; this section replaces them where they disagree.
    API mode matches static mode.
 7. Regenerate `contracts/openapi.json` after every step.
 
-**P1 — real landslide data**
+**P1 — real landslide data — code DONE; validation waits for a mapped scar outline**
 8. Choose the bbox and the passes before/after the event (one track and frame) and run
    `prepare_nisar` on GCOV.
 9. Validation numbers from the stack + scar/stable polygons.
@@ -69,6 +69,29 @@ water story; this section replaces them where they disagree.
 12. Coherence and LOS displacement PNGs per pair + per-point `coherence` / `los_cm`.
 
 **Not backend:** rain, exposure, optical, catalog, story text. The export copies them.
+
+### Later: move from "local files" to "server backend"
+
+For now everything runs locally: the pipeline writes to `data/derived/`, and
+`export_static` copies the results into `web/public/data/` for the static web build.
+**This is temporary.** The backend will be hosted on Google Cloud / Firebase. Then:
+
+- **Hosting:** run the FastAPI app on **Cloud Run** (Firebase Hosting cannot run Python;
+  it can forward `/api/**` to Cloud Run with a rewrite). Firebase Hosting serves the web build.
+- **Data:** prepared sites live in a **Cloud Storage bucket**, not on a laptop and not in the
+  web repo. The API reads from the bucket (or images are served straight from it with
+  public/signed URLs); `NEBULA_DATA_DIR` changes to point there.
+- **Pipeline:** stays offline (raw NISAR crops are large), but uploads its output to the
+  bucket instead of only writing `data/derived/`. It can later run as a Cloud Run job.
+- **Web:** set `VITE_API_URL` to the Cloud Run URL. Change `paths.siteFile` in
+  `web/src/core/api/client.ts` to use `GET /sites/{id}/files/…` (`TODO(slope-echo-api)`),
+  so story files come from the API too.
+- **Retire** `export_static` and the copied pictures in `web/public/data/` (keep only the
+  web team's fake data for offline development, or delete it).
+- **Before switching:** CORS allowlist gets the Firebase domain; secrets (Earthdata) go in
+  Secret Manager, never in the image.
+
+Marked in code/docs as `TODO(server-backend)`.
 
 ### Agree with the web team before step 2
 

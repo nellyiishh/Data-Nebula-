@@ -1,5 +1,8 @@
 """Exports prepared sites into the web app's static data folder (web/public/data/).
 
+TODO(server-backend): temporary. Once the API runs on Cloud Run with data in Cloud Storage,
+the web reads from the API and this export is retired (see the plan, section 0).
+
     uv run python -m pipeline.export_static                    # every prepared site
     uv run python -m pipeline.export_static --site togus-bulak  # only some
 

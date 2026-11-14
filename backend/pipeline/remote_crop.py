@@ -9,8 +9,9 @@ EARTHDATA_PASSWORD), never from code.
 """
 
 import datetime as dt
+import functools
 import hashlib
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping, MutableMapping
 from contextlib import AbstractContextManager, closing, contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +19,7 @@ from typing import Any, NamedTuple, cast
 
 import h5py
 import numpy as np
+from dotenv import dotenv_values
 from numpy.typing import NDArray
 from rasterio.warp import transform_bounds
 
@@ -28,6 +30,7 @@ log = get_logger("remote_crop")
 GCOV_SHORT_NAME = "NISAR_L2_GCOV_V1"
 GRID_GROUP = "/science/LSAR/GCOV/grids/frequencyA"
 IDENTIFICATION_GROUP = "/science/LSAR/identification"
+RADAR_GRID_GROUP = "/science/LSAR/GCOV/metadata/radarGrid"
 # GCOV dataset name → polarisation label. The diagonal terms are the backscatter power.
 POLARISATIONS = {"HH": "HHHH", "HV": "HVHV"}
 
@@ -64,6 +67,25 @@ class Window(NamedTuple):
 
 
 @dataclass(frozen=True)
+class ViewGeometry:
+    """How the radar looked at the crop centre, at several heights above the ellipsoid
+    (NISAR stores it as a coarse 3D cube). LOS points from the ground to the sensor."""
+
+    heights: Array  # metres above the WGS84 ellipsoid, ascending
+    los_east: Array
+    los_north: Array
+    incidence_deg: Array
+
+    def at_height(self, height_m: float) -> tuple[float, float, float]:
+        """(LOS east, LOS north, incidence angle in degrees) interpolated to height_m."""
+        return (
+            float(np.interp(height_m, self.heights, self.los_east)),
+            float(np.interp(height_m, self.heights, self.los_north)),
+            float(np.interp(height_m, self.heights, self.incidence_deg)),
+        )
+
+
+@dataclass(frozen=True)
 class Crop:
     granule_id: str
     acquired: dt.datetime  # UTC start of the acquisition
@@ -71,6 +93,20 @@ class Crop:
     x: Array  # column centres, metres, ascending
     y: Array  # row centres, metres, descending
     power: dict[str, Array]  # polarisation → linear power; no-data is NaN
+    geometry: ViewGeometry | None = None  # None for granules without radarGrid metadata
+
+
+EARTHDATA_KEYS = ("EARTHDATA_TOKEN", "EARTHDATA_USERNAME", "EARTHDATA_PASSWORD")
+
+
+def load_earthdata_env(env_file: Path, environ: MutableMapping[str, str]) -> None:
+    """Copy the Earthdata keys from backend/.env into environ, where earthaccess looks.
+    Only those keys, and never over a value the shell already set."""
+    if not env_file.is_file():
+        return
+    for key, value in dotenv_values(env_file).items():
+        if key in EARTHDATA_KEYS and value and key not in environ:
+            environ[key] = value
 
 
 def require_earthdata_env(environ: Mapping[str, str]) -> None:
@@ -135,6 +171,7 @@ def read_crop(h5: h5py.File, bbox: BBox) -> Crop:
     if not any(np.isfinite(block).any() for block in power.values()):
         raise EmptyCropError("the bbox is inside the grid but holds no valid pixels")
 
+    centre = ((bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2)
     return Crop(
         granule_id=_as_text(dataset(h5, f"{IDENTIFICATION_GROUP}/granuleId")[()]),
         acquired=_parse_utc(dataset(h5, f"{IDENTIFICATION_GROUP}/zeroDopplerStartTime")[()]),
@@ -142,6 +179,26 @@ def read_crop(h5: h5py.File, bbox: BBox) -> Crop:
         x=x[window.c0 : window.c1],
         y=y[window.r0 : window.r1],
         power=power,
+        geometry=_read_geometry(h5, *centre),
+    )
+
+
+def _read_geometry(h5: h5py.File, x: float, y: float) -> ViewGeometry | None:
+    """The geometry column nearest to (x, y), in the grid's CRS. Reads 3 x heights values."""
+    if RADAR_GRID_GROUP not in h5:
+        return None
+    gx = np.asarray(dataset(h5, f"{RADAR_GRID_GROUP}/xCoordinates")[:])
+    gy = np.asarray(dataset(h5, f"{RADAR_GRID_GROUP}/yCoordinates")[:])
+    col, row = int(np.abs(gx - x).argmin()), int(np.abs(gy - y).argmin())
+
+    def column(name: str) -> Array:
+        return np.asarray(dataset(h5, f"{RADAR_GRID_GROUP}/{name}")[:, row, col], dtype="f8")
+
+    return ViewGeometry(
+        heights=np.asarray(dataset(h5, f"{RADAR_GRID_GROUP}/heightAboveEllipsoid")[:], "f8"),
+        los_east=column("losUnitVectorX"),
+        los_north=column("losUnitVectorY"),
+        incidence_deg=column("incidenceAngle"),
     )
 
 
@@ -181,6 +238,8 @@ def _save(path: Path, crop: Crop) -> None:
         "y": crop.y,
     }
     arrays.update({f"power_{label}": block for label, block in crop.power.items()})
+    if crop.geometry is not None:
+        arrays.update({f"geometry_{k}": v for k, v in vars(crop.geometry).items()})
     np.savez_compressed(path, **arrays)
 
 
@@ -193,6 +252,12 @@ def _load(path: Path) -> Crop:
             x=data["x"],
             y=data["y"],
             power={label: data[f"power_{label}"] for label in POLARISATIONS},
+            # Crops cached before geometry was read have no geometry_* arrays.
+            geometry=ViewGeometry(
+                **{f: data[f"geometry_{f}"] for f in ViewGeometry.__dataclass_fields__}
+            )
+            if "geometry_heights" in data
+            else None,
         )
 
 
@@ -200,19 +265,23 @@ def crop_granule(
     granule_id: str,
     bbox: BBox,
     cache_dir: Path,
-    opener: Opener = open_remote_granule,
+    opener: Opener | None = None,
+    collection: str = GCOV_SHORT_NAME,
 ) -> Crop:
     """Crop one granule, reusing the local copy when this granule+bbox was fetched before.
 
     Cache: owner = this pipeline, files in cache_dir (data/raw/<site>/, gitignored). No TTL:
     granules are immutable. Invalidation: a different bbox is a different file; delete the
-    folder to refetch.
+    folder to refetch. `collection` is the CMR short name: provisional and validated
+    granules live in different collections.
     """
     path = _cache_path(cache_dir, granule_id, bbox)
     if path.is_file():
         log.info("cache hit %s", path.name)
         return _load(path)
-    with opener(granule_id) as h5:
+    # Looked up at call time (not bound as a default) so tests can replace it.
+    open_granule = opener or functools.partial(open_remote_granule, short_name=collection)
+    with open_granule(granule_id) as h5:
         crop = read_crop(h5, bbox)
     _save(path, crop)
     log.info("fetched %s %s", granule_id, {k: v.shape for k, v in crop.power.items()})

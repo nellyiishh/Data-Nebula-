@@ -37,6 +37,7 @@ from app.features.sites.schemas import (
     layers_for,
 )
 from app.features.sites.slope_echo import SlopeEcho
+from pipeline.derived import derive_slope_echo
 
 Cube = NDArray[np.floating]
 
@@ -57,10 +58,20 @@ class SiteMeta:
 
 
 def write_site(
-    data_dir: Path, meta: SiteMeta, *, hh: Cube, hv: Cube, bounds_merc: MercatorBounds
+    data_dir: Path,
+    meta: SiteMeta,
+    *,
+    hh: Cube,
+    hv: Cube,
+    bounds_merc: MercatorBounds,
+    blind_mask: NDArray[np.bool_] | None = None,
 ) -> Path:
     """hh/hv: (dates, rows, cols) in dB, NaN = no data, row 0 = north, on one shared
-    EPSG:3857 grid covering bounds_merc. Replaces any earlier output for this site."""
+    EPSG:3857 grid covering bounds_merc. Replaces any earlier output for this site.
+
+    For a site with a slope_echo block, also derives what the block leaves empty: the raw
+    linear example, the radar-blind overlay (when blind_mask is given, same grid) and the
+    scar-vs-stable validation numbers (when both outlines exist)."""
     _validate(meta, hh, hv, bounds_merc)
     site_dir = data_dir / meta.id
     if site_dir.exists():
@@ -68,12 +79,17 @@ def write_site(
     site_dir.mkdir(parents=True)
 
     detail = _site_detail(meta, bounds_merc)
-    (site_dir / SITE_FILE).write_text(detail.model_dump_json(indent=2))
     stats = _site_stats(meta, hh, hv, bounds_merc)
     (site_dir / STATS_FILE).write_text(stats.model_dump_json(indent=2))
     _write_layers(site_dir, detail.layers, detail.dates, hh, hv)
     if meta.ext_dir is not None:
         shutil.copytree(meta.ext_dir, site_dir / EXT_DIR)
+    if detail.slope_echo is not None:
+        block = derive_slope_echo(
+            site_dir, detail.slope_echo, detail.dates, hh, bounds_merc, blind_mask
+        )
+        detail = detail.model_copy(update={"slope_echo": block})
+    (site_dir / SITE_FILE).write_text(detail.model_dump_json(indent=2))
     np.savez_compressed(
         site_dir / STACK_FILE,
         hh=hh.astype(np.float32),
@@ -81,7 +97,7 @@ def write_site(
         bounds_merc=np.asarray(bounds_merc, dtype=np.float64),
         dates=np.array([d.isoformat() for d in detail.dates]),
     )
-    missing = _missing_references(site_dir, meta.slope_echo)
+    missing = _missing_references(site_dir, detail.slope_echo)
     if missing:
         shutil.rmtree(site_dir)  # never leave a site whose story links to nothing
         raise ValueError(f"{meta.id}: slope_echo references files that do not exist: {missing}")

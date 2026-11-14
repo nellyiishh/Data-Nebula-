@@ -7,12 +7,15 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | `GET /api/v1/health` | Wired | |
 | `GET /api/v1/sites…` (list, detail, stats, layers, change, timeseries) | Wired | Serves whatever the pipeline wrote to `data/derived/` |
 | `demo-reservoir` site | **Demo data** | Synthetic (`pipeline/make_demo_site.py`), `source: "demo"`. The UI must label it as not real |
-| Real NISAR site | `TODO(nisar-pipeline)` | `backend/pipeline/prepare_nisar.py` is a stub; `data/manifest.json` has no sites yet |
-| Static export → `web/public/data/` | Wired | `pipeline/export_static.py`. Merges `sites.json` (keeps other sites), replaces only the exported sites' folders |
+| Real NISAR site `toguz-bulak` | Wired (pipeline) | `data/manifest.json`: track 156 A, frame 022, 6 PROVISIONAL GCOV passes 12 Aug – 11 Oct 2026 (event 10 Oct). Earthdata login read from `backend/.env` (EARTHDATA_* only). Not yet exported into `web/public/data/` |
+| Static export → `web/public/data/` | Wired, **temporary** `TODO(server-backend)` | Replaced by the hosted API + Cloud Storage later (see plan, "Later: move to server backend"). `pipeline/export_static.py`. Merges `sites.json` (keeps other sites), replaces only the exported sites' folders |
 | `slope_echo` block | Wired in the API | Optional field of the site detail, typed as in `web/.../types.ts`. Comes from `data/manifest.json`; its files from `data/ext/<site_id>/` (copied to `ext/`). Missing files fail the pipeline |
 | `GET /sites/{id}/files/{ext/…\|layers/…}` | Wired | Serves the `slope_echo` files in API mode. Web `paths.siteFile` still always uses static files (`TODO(slope-echo-api)` on the web side) |
 | Display ranges (`display` in site detail) | Wired | dB stretch, change threshold and colours the images were drawn with. Web legend can read them instead of `TODO(legend-api)` |
-| Coherence / LOS displacement / radar-blind mask / validation / raw example | Not built | P1–P2 in the plan; GUNW needed for coherence and LOS |
+| Radar-blind overlay (`radar_blind`) | Wired | `pipeline/radar_blind.py`: local-slope layover/shadow from Copernicus GLO-30 DEM + GCOV look geometry. Ridges hiding distant valleys are not caught |
+| Raw linear example | Wired | Last pass before the event, written by `pipeline/derived.py` when the block has none |
+| Validation numbers | Wired, **no real input yet** | Computed only when the site has `scar` and `stable` polygon outlines in `data/ext/<id>/`; none are mapped for Toguz-Bulak, so `validation` is null |
+| Coherence / LOS displacement | Not built | P2; needs GUNW pairs over the site |
 
 ## Web (`web/`)
 
@@ -24,7 +27,7 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Click-a-point chart (static mode) | Snaps to nearest point of interest | Live API mode passes the clicked coordinates (HH/HV only; coherence/LOS only for points of interest). |
 | Legend stretch | `TODO(legend-api)` | `web/src/features/sites/model/layers.ts` — must match `backend/pipeline/writer.py`. |
 | Event facts | `TODO(source)` | Links for 42.8k m³, 348 mudflows, ADB atlas still missing. |
-| Site location | `TODO(site)` | Togus-Bulak centre is an approximate placeholder. |
+| Site location | `TODO(site)` on the web fake only | Real site: Toguz-Bulak village 40.4721 N, 73.6266 E (OpenStreetMap); the web fake `togus-bulak` sits ~10 km away. The slide outline (Donuz-Oi section) is still unmapped. |
 | Team / AI-use text | `TODO(team)` | `web/src/features/story/content.ts`. |
 | Registered events (`catalog`) | **Demo** | Two of three entries are invented; replace with NASA COOLR / Global Landslide Catalog rows. |
 | 3D terrain | External tiles | AWS Open Data Terrain Tiles (terrarium), no key. Not checked in a WebGL browser yet. |

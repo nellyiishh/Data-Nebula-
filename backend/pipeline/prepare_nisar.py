@@ -15,23 +15,29 @@ hands the stack to writer.write_site.
 """
 
 import dataclasses
+import functools
 import json
+import os
 from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
 import numpy as np
+from numpy.typing import NDArray
 from pydantic import BaseModel
 
 from app.core.config import REPO_ROOT, Settings
 from app.core.logging import configure_logging, get_logger
-from app.features.sites.schemas import Acquisition, ChangeType
+from app.features.sites.models import MercatorBounds
+from app.features.sites.schemas import Acquisition, ChangeType, PointOfInterest
 from app.features.sites.slope_echo import SlopeEcho
 from pipeline.processing import despeckle, mercator_grid, to_db, to_mercator_grid
-from pipeline.remote_crop import BBox, Crop, crop_granule
+from pipeline.radar_blind import DemSource, blind_mask, cached_dem, fetch_copernicus_dem
+from pipeline.remote_crop import GCOV_SHORT_NAME, BBox, Crop, crop_granule, load_earthdata_env
 from pipeline.writer import SiteMeta, write_site
 
 MANIFEST_PATH = REPO_ROOT / "data" / "manifest.json"
+BACKEND_DIR = REPO_ROOT / "backend"
 RAW_DIR = REPO_ROOT / "data" / "raw"
 # data/ext/<site_id>/: files made by teammates (coherence, GeoJSON, rain…), committed.
 EXT_ROOT = REPO_ROOT / "data" / "ext"
@@ -48,6 +54,10 @@ class ManifestSite(BaseModel):
     bbox: tuple[float, float, float, float]
     band: Literal["L", "S"] = "L"
     granules: list[str]
+    # CMR collection the granules belong to. Before 21 Oct 2026 only PROVISIONAL exists;
+    # keep one collection per site so every date shares one processing version.
+    collection: str = GCOV_SHORT_NAME
+    points_of_interest: list[PointOfInterest] = []
     slope_echo: SlopeEcho | None = None
 
 
@@ -66,12 +76,14 @@ def prepare_site(
     site: ManifestSite,
     data_dir: Path,
     raw_dir: Path,
-    cropper: Cropper = crop_granule,
+    cropper: Cropper | None = None,
     max_side: int = 1024,
     ext_root: Path = EXT_ROOT,
+    dem_source: DemSource = fetch_copernicus_dem,
 ) -> Path:
     if len(site.granules) < 2:
         raise ValueError(f"{site.id}: a change map needs at least two dates")
+    cropper = cropper or functools.partial(crop_granule, collection=site.collection)
     crops = sorted(
         (cropper(granule, site.bbox, raw_dir / site.id) for granule in site.granules),
         key=lambda crop: crop.acquired,
@@ -104,10 +116,46 @@ def prepare_site(
             for crop in crops
         ],
         attribution=ATTRIBUTION,
+        points_of_interest=site.points_of_interest,
         slope_echo=site.slope_echo,
         ext_dir=ext_dir if (ext_dir := ext_root / site.id).is_dir() else None,
     )
-    return write_site(data_dir, meta, hh=stacks["HH"], hv=stacks["HV"], bounds_merc=bounds)
+    blind = (
+        _radar_blind(crops, bounds, shape, raw_dir / site.id, dem_source)
+        if site.slope_echo is not None
+        else None
+    )
+    return write_site(
+        data_dir, meta, hh=stacks["HH"], hv=stacks["HV"], bounds_merc=bounds, blind_mask=blind
+    )
+
+
+def _radar_blind(
+    crops: list[Crop],
+    bounds: MercatorBounds,
+    shape: tuple[int, int],
+    cache_dir: Path,
+    dem_source: DemSource,
+) -> NDArray[np.bool_] | None:
+    """Layover/shadow on the site grid. Every crop is on one track, so the first one's look
+    geometry stands for all. A missing DEM only costs the overlay, never the site."""
+    geometry = crops[0].geometry
+    if geometry is None:
+        log.info("no look geometry in %s; skipping radar blind spots", crops[0].granule_id)
+        return None
+    try:
+        dem = cached_dem(bounds, shape, cache_dir, dem_source)
+    except Exception as exc:  # network or tile errors: log and carry on without the overlay
+        log.warning("DEM unavailable (%s); skipping radar blind spots", exc)
+        return None
+    # DEM heights are above the geoid, geometry heights above the ellipsoid: tens of metres
+    # apart here, far below the cube's height spacing.
+    los_east, los_north, incidence = geometry.at_height(float(np.nanmedian(dem)))
+    mask = blind_mask(dem, bounds, los_east, los_north, incidence)
+    log.info(
+        "radar blind spots: %.1f%% of the site (incidence %.1f°)", 100 * mask.mean(), incidence
+    )
+    return mask
 
 
 def _despeckled(crop: Crop) -> Crop:
@@ -118,6 +166,7 @@ def _despeckled(crop: Crop) -> Crop:
 
 def main() -> None:
     configure_logging()
+    load_earthdata_env(BACKEND_DIR / ".env", os.environ)
     manifest = load_manifest()
     if not manifest.sites:
         log.warning("No sites in %s yet; add one (see this module's docstring).", MANIFEST_PATH)

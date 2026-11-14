@@ -91,3 +91,98 @@ def test_prepare_site_needs_at_least_two_dates(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="at least two"):
         prepare_site(_site(["G_B"]), tmp_path / "d", tmp_path / "r", cropper=cropper)
+
+
+def _landslide_site(granules: list[str]) -> ManifestSite:
+    from app.features.sites.slope_echo import SlopeEcho
+    from testsupport import tiny_slope_echo
+
+    block = tiny_slope_echo()
+    block.update(layers=[], overlays=[], rain=None, raw_example=None, point_extras={})
+    return ManifestSite(
+        id="slide-site",
+        name="Slide",
+        change_type="landslide",
+        bbox=BBOX,
+        granules=granules,
+        slope_echo=SlopeEcho.model_validate(block),
+    )
+
+
+def _with_geometry(cropper):
+    from pipeline.remote_crop import ViewGeometry
+
+    looks_from_east = ViewGeometry(
+        heights=np.array([0.0, 4000.0]),
+        los_east=np.array([0.8, 0.8]),
+        los_north=np.array([0.0, 0.0]),
+        incidence_deg=np.array([35.0, 35.0]),
+    )
+
+    def wrapped(granule_id: str, bbox: BBox, cache_dir: Path) -> Crop:
+        crop = cropper(granule_id, bbox, cache_dir)
+        return Crop(**{**vars(crop), "geometry": looks_from_east})
+
+    return wrapped
+
+
+def test_landslide_site_gets_a_radar_blind_overlay(tmp_path: Path) -> None:
+    import json
+
+    cropper, _ = _fake_cropper()
+    asked: list[tuple[int, int]] = []
+
+    def steep_east_slope(bounds, shape):
+        asked.append(shape)
+        cols = np.arange(shape[1]) * 1.0
+        return np.broadcast_to(cols * 100.0, shape).astype("f8")  # very steep, faces east
+
+    site_dir = prepare_site(
+        _landslide_site(["G_B", "G_C"]),
+        tmp_path / "d",
+        tmp_path / "r",
+        cropper=_with_geometry(cropper),
+        dem_source=steep_east_slope,
+    )
+
+    block = json.loads((site_dir / SITE_FILE).read_text())["slope_echo"]
+    assert [o["id"] for o in block["overlays"]] == ["radar_blind"]
+    assert (site_dir / "ext" / "radar_blind.png").is_file()
+    assert len(asked) == 1
+
+
+def test_no_geometry_means_no_dem_fetch_and_no_overlay(tmp_path: Path) -> None:
+    import json
+
+    cropper, _ = _fake_cropper()
+
+    def must_not_be_called(bounds, shape):
+        raise AssertionError("DEM fetched without geometry")
+
+    site_dir = prepare_site(
+        _landslide_site(["G_B", "G_C"]),
+        tmp_path / "d",
+        tmp_path / "r",
+        cropper=cropper,
+        dem_source=must_not_be_called,
+    )
+
+    assert json.loads((site_dir / SITE_FILE).read_text())["slope_echo"]["overlays"] == []
+
+
+def test_a_failing_dem_download_does_not_stop_the_site(tmp_path: Path) -> None:
+    cropper, _ = _fake_cropper()
+
+    def offline(bounds, shape):
+        raise OSError("network down")
+
+    site_dir = prepare_site(
+        _landslide_site(["G_B", "G_C"]),
+        tmp_path / "d",
+        tmp_path / "r",
+        cropper=_with_geometry(cropper),
+        dem_source=offline,
+    )
+
+    assert (site_dir / SITE_FILE).is_file()
+    assert not (site_dir / "ext" / "radar_blind.png").exists()

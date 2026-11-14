@@ -33,7 +33,7 @@ GRANULE = "NISAR_L2_PR_GCOV_TEST_001"
 EPSG = 32635
 
 
-def _make_granule(path: Path, *, nan_block: bool = False) -> Path:
+def _make_granule(path: Path, *, nan_block: bool = False, with_geometry: bool = True) -> Path:
     """A 200x200 grid at 20 m: x = 499000.. (ascending), y = 2000.. (descending)."""
     rows = cols = 200
     r, c = np.indices((rows, cols))
@@ -48,6 +48,17 @@ def _make_granule(path: Path, *, nan_block: bool = False) -> Path:
         g["xCoordinates"] = 499000.0 + 20.0 * np.arange(cols)
         g["yCoordinates"] = 2000.0 - 20.0 * np.arange(rows)
         g["projection"] = np.uint32(EPSG)
+        if with_geometry:
+            radar = h.create_group("science/LSAR/GCOV/metadata/radarGrid")
+            heights = np.array([0.0, 1000.0, 2000.0])
+            shape = (3, 5, 5)  # heights x rows x cols, 1 km cells over the same area
+            radar["heightAboveEllipsoid"] = heights
+            radar["xCoordinates"] = 499000.0 + 1000.0 * np.arange(5)
+            radar["yCoordinates"] = 2000.0 - 1000.0 * np.arange(5)
+            radar["losUnitVectorX"] = np.full(shape, -0.6, dtype="f4")
+            radar["losUnitVectorY"] = np.full(shape, 0.1, dtype="f4")
+            incidence = np.broadcast_to(np.array([30.0, 35.0, 40.0])[:, None, None], shape)
+            radar["incidenceAngle"] = incidence.astype("f4")
         ident = h.create_group("science/LSAR/identification")
         ident["zeroDopplerStartTime"] = np.bytes_("2026-10-21T17:07:21.000000000")
         ident["granuleId"] = np.bytes_(GRANULE)
@@ -197,3 +208,87 @@ def test_live_granule_crop(tmp_path: Path) -> None:
             window.r0 : window.r1, window.c0 : window.c1
         ]
     assert np.isfinite(block).mean() > 0.9
+
+
+def test_read_crop_keeps_the_viewing_geometry_at_the_crop_centre(tmp_path: Path) -> None:
+    path = _make_granule(tmp_path / "g.h5")
+    with h5py.File(path, "r") as h5:
+        crop = read_crop(h5, (26.999, -0.001, 27.001, 0.001))
+
+    geometry = crop.geometry
+    assert geometry is not None
+    assert geometry.heights.tolist() == [0.0, 1000.0, 2000.0]
+    los_east, los_north, incidence = geometry.at_height(1500.0)
+    assert (los_east, los_north) == pytest.approx((-0.6, 0.1), abs=1e-6)
+    assert incidence == pytest.approx(37.5)
+
+
+def test_geometry_survives_the_cache(tmp_path: Path) -> None:
+    path = _make_granule(tmp_path / "g.h5")
+
+    @contextmanager
+    def opener(_: str):
+        with h5py.File(path, "r") as h5:
+            yield h5
+
+    bbox = (26.999, -0.001, 27.001, 0.001)
+    crop_granule(GRANULE, bbox, tmp_path / "cache", opener=opener)
+    cached = crop_granule(GRANULE, bbox, tmp_path / "cache", opener=opener)
+
+    assert cached.geometry is not None
+    assert cached.geometry.incidence_deg.tolist() == [30.0, 35.0, 40.0]
+
+
+def test_granule_without_geometry_still_crops(tmp_path: Path) -> None:
+    path = _make_granule(tmp_path / "g.h5", with_geometry=False)
+    with h5py.File(path, "r") as h5:
+        crop = read_crop(h5, (26.999, -0.001, 27.001, 0.001))
+
+    assert crop.geometry is None
+
+
+def test_crop_granule_searches_the_requested_collection(tmp_path: Path, monkeypatch) -> None:
+    import pipeline.remote_crop as remote_crop
+
+    path = _make_granule(tmp_path / "g.h5")
+    asked: list[str] = []
+
+    @contextmanager
+    def fake_remote(granule_id: str, short_name: str = remote_crop.GCOV_SHORT_NAME):
+        asked.append(short_name)
+        with h5py.File(path, "r") as h5:
+            yield h5
+
+    monkeypatch.setattr(remote_crop, "open_remote_granule", fake_remote)
+
+    crop_granule(
+        GRANULE,
+        (26.999, -0.001, 27.001, 0.001),
+        tmp_path / "cache",
+        collection="NISAR_L2_GCOV_PROVISIONAL_V1",
+    )
+
+    assert asked == ["NISAR_L2_GCOV_PROVISIONAL_V1"]
+
+
+def test_earthdata_keys_are_loaded_from_the_env_file(tmp_path: Path) -> None:
+    from pipeline.remote_crop import load_earthdata_env
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        'EARTHDATA_TOKEN=from-file\nEARTHDATA_USERNAME=user\nNEBULA_CORS_ORIGINS=["x"]\n'
+    )
+    environ = {"EARTHDATA_USERNAME": "already-set"}
+
+    load_earthdata_env(env_file, environ)
+
+    assert environ == {"EARTHDATA_USERNAME": "already-set", "EARTHDATA_TOKEN": "from-file"}
+
+
+def test_missing_env_file_changes_nothing(tmp_path: Path) -> None:
+    from pipeline.remote_crop import load_earthdata_env
+
+    environ: dict[str, str] = {}
+    load_earthdata_env(tmp_path / "absent.env", environ)
+
+    assert environ == {}

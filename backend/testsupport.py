@@ -125,7 +125,12 @@ def write_tiny_ext(ext_dir: Path) -> Path:
     return ext_dir
 
 
-def build_tiny_landslide(data_dir: Path, ext_dir: Path, slope_echo: dict | None = None) -> Path:
+def build_tiny_landslide(
+    data_dir: Path,
+    ext_dir: Path,
+    slope_echo: dict | None = None,
+    blind_mask: NDArray[np.bool_] | None = None,
+) -> Path:
     hh, hv = tiny_stack()
     meta = SiteMeta(
         id=TINY_SLIDE_ID,
@@ -141,4 +146,4 @@ def build_tiny_landslide(data_dir: Path, ext_dir: Path, slope_echo: dict | None 
         slope_echo=SlopeEcho.model_validate(slope_echo or tiny_slope_echo()),
         ext_dir=ext_dir,
     )
-    return write_site(data_dir, meta, hh=hh, hv=hv, bounds_merc=TINY_BOUNDS)
+    return write_site(data_dir, meta, hh=hh, hv=hv, bounds_merc=TINY_BOUNDS, blind_mask=blind_mask)

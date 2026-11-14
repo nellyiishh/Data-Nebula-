@@ -32,6 +32,6 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Event facts | `TODO(source)` | Links for 42.8k m³, 348 mudflows, ADB atlas still missing. |
 | Site location | `TODO(site)` on the web fake only | Real site: Toguz-Bulak village 40.4721 N, 73.6266 E (OpenStreetMap); the web fake `togus-bulak` sits ~10 km away. The slide outline (Donuz-Oi section) is still unmapped. |
 | Team / AI-use text | `TODO(team)` | `web/src/features/story/content.ts`. |
-| Registered events (`catalog`) | **Demo** | Two of three entries are invented; replace with NASA COOLR / Global Landslide Catalog rows. |
+| Registered events (`catalog`) | Wired (NASA COOLR) for `toguz-bulak` | `pipeline/catalog.py --site <id>` → `data/ext/<id>/catalog.json`; `write_site` fills `catalog` unless the manifest gives one. The fake `togus-bulak` still has invented rows. |
 | 3D terrain | External tiles | AWS Open Data Terrain Tiles (terrarium), no key. Not checked in a WebGL browser yet. |
 | Listen to Earth | Wired (client only) | Web Audio; pitch follows the selected point's series, silence = missing value. |

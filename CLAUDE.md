@@ -327,6 +327,7 @@ uv run python -m pipeline.prepare_nisar   # real NISAR → same files
 uv run --group pipeline python -m pipeline.rain --site <id>  # IMERG daily rain → data/ext/<id>/rain.json
 uv run --group pipeline python -m pipeline.exposure --site <id>  # OSM buildings/roads → data/ext/<id>/
 uv run --group pipeline python -m pipeline.optical --site <id>   # NASA HLS camera pictures → data/ext/<id>/
+uv run --group pipeline python -m pipeline.catalog --site <id>   # NASA COOLR reports nearby → data/ext/<id>/
 uv run python -m pipeline.export_static   # prepared sites → data/web/ (website data; web serves it at /data)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 

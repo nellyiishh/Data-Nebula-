@@ -4,6 +4,10 @@ NASA Space Apps 2026 · 6 people (1 backend, 5 frontend) · 6 hours · written 2
 
 Challenge page: https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/
 
+# AT FIRST OUR SCOPE IS KYRGYZSTAN
+#Important
+
+
 ## 1. What the challenge asks for
 
 Build an **interactive application** that uses **NISAR radar data** to track and show one or

@@ -79,9 +79,11 @@ mix, 5 coherence + 5 ground-motion pairs, radar-blind mask, raw example, one poi
 **A. Backend can do now (no outside input)**
 1. ~~**Exposure**~~ **DONE:** `pipeline/exposure.py` → 14 buildings, 11.97 km of road within
    2 km. Measured around the village point until a `slide` point exists (item 8); rerun then.
-2. **Optical before/after:** NASA HLS (Landsat + Sentinel-2) true colour for one cloud-free
-   day each side of 10 Oct → `optical` layer. Fills Radar Vision (camera ↔ radar). Risk:
-   clouds in October; say so if none is clear.
+2. ~~**Optical before/after**~~ **DONE:** `pipeline/optical.py` (NASA HLS v2.0, 30 m). Clouds are
+   measured over the site from each scene's Fmask; one clear scene per radar pass on the
+   same side of the event, plus the first clear one after it. Web note: Radar Vision shows
+   the latest camera frame on or before the radar date, so an after-image later than the
+   last radar pass only appears in the Time Machine.
 3. **Registered events:** nearby rows from NASA's Global Landslide Catalog / COOLR →
    `catalog`. Its records may stop years ago; show "none recorded" rather than inventing rows.
 4. **Re-run `prepare_nisar` + `export_static`** after each of the above.

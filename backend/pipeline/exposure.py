@@ -15,7 +15,6 @@ import argparse
 import datetime as dt
 import json
 import math
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -24,6 +23,7 @@ from typing import Any
 from app.core.logging import configure_logging, get_logger
 from app.features.sites.slope_echo import Exposure, SourceRef
 from pipeline.derived import EXPOSURE_FILE, EXPOSURE_NUMBERS_FILE, EXPOSURE_OVERLAY
+from pipeline.http import request_with_retry
 from pipeline.prepare_nisar import EXT_ROOT, ManifestSite, load_manifest
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
@@ -93,24 +93,17 @@ def overpass_query(center: Center, radius_km: float) -> str:
     )
 
 
-# The public Overpass servers are often busy; these answers mean "try again shortly".
-RETRY_STATUSES = frozenset({429, 502, 503, 504})
-RETRY_WAITS_S = (10, 30)
-
-
-def fetch_overpass(query: str, sleep: Callable[[float], None] = time.sleep) -> dict[str, Any]:
-    import requests  # pipeline-only dependency
-
-    for wait in (*RETRY_WAITS_S, None):
-        response = requests.post(
-            OVERPASS_URL, data={"data": query}, headers={"User-Agent": USER_AGENT}, timeout=120
-        )
-        if response.status_code not in RETRY_STATUSES or wait is None:
-            response.raise_for_status()
-            return response.json()
-        log.warning("Overpass answered %d; retrying in %ds", response.status_code, wait)
-        sleep(wait)
-    raise AssertionError("unreachable")
+def fetch_overpass(query: str) -> dict[str, Any]:
+    response = request_with_retry(
+        "POST",
+        OVERPASS_URL,
+        data={"data": query},
+        headers={"User-Agent": USER_AGENT},
+        timeout=120,
+        waits=(10, 30),  # Overpass asks clients to back off longer when busy
+    )
+    response.raise_for_status()
+    return response.json()
 
 
 def _position(element: Element) -> tuple[float, float] | None:

@@ -269,6 +269,44 @@
             "+1.5 cm toward"
           ]
         }
+      },
+      {
+        "id": "optical",
+        "kind": "optical",
+        "title": "Camera view",
+        "unit": "",
+        "description": "What a camera saw from space: true colour, one fixed brightness for every date. Only days at least 80% clear over the site are used, and clouds that remain are left in. Scenes: 2026-08-08 HLS.L30.T43TCE.2026220T054613.v2.0 (100% clear); 2026-08-27 HLS.S30.T43TCE.2026239T054631.v2.0 (100% clear); 2026-09-06 HLS.S30.T43TCE.2026249T054631.v2.0 (100% clear); 2026-09-14 HLS.S30.T43TCE.2026257T055629.v2.0 (100% clear); 2026-10-03 HLS.L30.T43TCE.2026276T054640.v2.0 (100% clear); 2026-10-11 HLS.L30.T43TCE.2026284T054636.v2.0 (100% clear).",
+        "source": {
+          "name": "NASA HLS v2.0 (Harmonized Landsat 8/9 + Sentinel-2, 30 m), LP DAAC",
+          "url": "https://www.earthdata.nasa.gov/data/projects/hls"
+        },
+        "frames": [
+          {
+            "date": "2026-08-08",
+            "file": "ext/optical/2026-08-08.png"
+          },
+          {
+            "date": "2026-08-27",
+            "file": "ext/optical/2026-08-27.png"
+          },
+          {
+            "date": "2026-09-06",
+            "file": "ext/optical/2026-09-06.png"
+          },
+          {
+            "date": "2026-09-14",
+            "file": "ext/optical/2026-09-14.png"
+          },
+          {
+            "date": "2026-10-03",
+            "file": "ext/optical/2026-10-03.png"
+          },
+          {
+            "date": "2026-10-11",
+            "file": "ext/optical/2026-10-11.png"
+          }
+        ],
+        "legend": null
       }
     ],
     "overlays": [

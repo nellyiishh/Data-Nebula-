@@ -260,3 +260,54 @@ def test_no_exposure_files_means_no_exposure(tmp_path: Path) -> None:
     block = json.loads((site_dir / "site.json").read_text())["slope_echo"]
     assert block["exposure"] is None
     assert all(o["id"] != "exposure" for o in block["overlays"])
+
+
+def _write_optical(ext_dir: Path) -> None:
+    (ext_dir / "optical").mkdir(parents=True, exist_ok=True)
+    (ext_dir / "optical" / "2026-06-21.png").write_bytes(b"\x89PNG fake")
+    frames = [
+        {
+            "date": "2026-06-21",
+            "file": "ext/optical/2026-06-21.png",
+            "scene_id": "HLS.S30.T00XXX.2026172T060000.v2.0",
+            "clear_pct": 97.5,
+        }
+    ]
+    (ext_dir / "optical.json").write_text(json.dumps({"frames": frames}))
+
+
+def test_optical_files_become_the_camera_layer(tmp_path: Path) -> None:
+    ext_dir = write_tiny_ext(tmp_path / "ext")
+    _write_optical(ext_dir)
+
+    site_dir = build_tiny_landslide(tmp_path / "derived", ext_dir)
+
+    layers = json.loads((site_dir / "site.json").read_text())["slope_echo"]["layers"]
+    optical = next(layer for layer in layers if layer["kind"] == "optical")
+    assert optical["frames"] == [{"date": "2026-06-21", "file": "ext/optical/2026-06-21.png"}]
+    assert "HLS" in optical["source"]["name"]
+    assert "HLS.S30.T00XXX.2026172T060000.v2.0" in optical["description"]
+
+
+def test_a_given_optical_layer_is_not_duplicated(tmp_path: Path) -> None:
+    ext_dir = write_tiny_ext(tmp_path / "ext")
+    _write_optical(ext_dir)
+    block = tiny_slope_echo()
+    block["layers"].append(
+        {
+            "id": "optical",
+            "kind": "optical",
+            "title": "Hand-made",
+            "unit": "",
+            "description": "given",
+            "source": {"name": "team"},
+            "frames": [{"date": "2026-06-21", "file": "ext/optical/2026-06-21.png"}],
+            "legend": None,
+        }
+    )
+
+    site_dir = build_tiny_landslide(tmp_path / "derived", ext_dir, block)
+
+    layers = json.loads((site_dir / "site.json").read_text())["slope_echo"]["layers"]
+    optical = [layer for layer in layers if layer["kind"] == "optical"]
+    assert [layer["title"] for layer in optical] == ["Hand-made"]

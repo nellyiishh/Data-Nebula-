@@ -67,6 +67,35 @@ EXPOSURE_OVERLAY = ExtOverlay(
 )
 
 
+# Written by pipeline/optical.py into data/ext/<site>/, copied here by write_site.
+OPTICAL_DIR = "ext/optical"
+OPTICAL_NUMBERS_FILE = "ext/optical.json"
+OPTICAL_SOURCE = SourceRef(
+    name="NASA HLS v2.0 (Harmonized Landsat 8/9 + Sentinel-2, 30 m), LP DAAC",
+    url="https://www.earthdata.nasa.gov/data/projects/hls",
+)
+
+
+def _optical_layer(site_dir: Path) -> ExtLayer | None:
+    path = site_dir / OPTICAL_NUMBERS_FILE
+    if not path.is_file():
+        return None
+    frames = json.loads(path.read_text())["frames"]
+    scenes = "; ".join(f"{f['date']} {f['scene_id']} ({f['clear_pct']:g}% clear)" for f in frames)
+    return ExtLayer(
+        id="optical",
+        kind="optical",
+        title="Camera view",
+        unit="",
+        description="What a camera saw from space: true colour, one fixed brightness for "
+        "every date. Only days at least 80% clear over the site are used, and clouds that "
+        f"remain are left in. Scenes: {scenes}.",
+        source=OPTICAL_SOURCE,
+        frames=[ExtFrame.model_validate({"date": f["date"], "file": f["file"]}) for f in frames],
+        legend=None,
+    )
+
+
 def _read_exposure(site_dir: Path) -> Exposure | None:
     path = site_dir / EXPOSURE_NUMBERS_FILE
     return Exposure.model_validate_json(path.read_text()) if path.is_file() else None
@@ -90,6 +119,9 @@ def derive_slope_echo(
             **block.point_extras,
             **_write_point_extras(site_dir, pairs, points or [], bounds_merc),
         }
+    layers = update.get("layers", block.layers)
+    if all(layer.kind != "optical" for layer in layers) and (optical := _optical_layer(site_dir)):
+        update["layers"] = [*layers, optical]
     if block.raw_example is None:
         update["raw_example"] = _write_raw_example(site_dir, dates, hh, block.event.date)
     if blind is not None:

@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              73.56706,
+              40.53873
+            ],
+            [
+              73.57647,
+              40.53873
+            ],
+            [
+              73.57647,
+              40.53151
+            ],
+            [
+              73.56706,
+              40.53151
+            ],
+            [
+              73.56706,
+              40.53873
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "name": "Stable reference area"
+      }
+    }
+  ]
+}

@@ -1,44 +1,49 @@
-import type { LayerId } from '../../sites/model/types'
+import type { LayerView } from '../../sites/model/layers'
+import type { ExtOverlay } from '../../sites/model/types'
+import { overlayColor } from '../model/overlays'
 
-// Owner: Frontend 2 (compare). Ranges must match the backend's fixed stretch per layer.
-// TODO(legend-api): confirm dB ranges with the backend prepare script.
-const RANGES: Record<string, [string, string]> = {
-  hh: ['−25 dB (smooth / water)', '0 dB (rough)'],
-  hv: ['−32 dB (bare)', '−8 dB (vegetation)'],
-}
+// Owner: Frontend 2 (compare). Legend for the active layer plus any overlays that are on.
 
-export function Legend({ layer, showChange }: { layer: LayerId; showChange: boolean }) {
-  const range = RANGES[layer]
+export function Legend({ layer, overlays }: { layer: LayerView | undefined; overlays: ExtOverlay[] }) {
+  const lg = layer?.legend
   return (
     <div className="legend">
-      {range && (
+      {lg && layer?.kind !== 'change' && lg.colors.length > 1 && (
         <>
-          <div className="legend__bar" style={{ background: 'linear-gradient(90deg, black, white)' }} />
+          <div className="legend__bar" style={{ background: `linear-gradient(90deg, ${lg.colors.join(', ')})` }} />
           <div className="legend__labels muted">
-            <span>{range[0]}</span>
-            <span>{range[1]}</span>
+            {lg.labels.map((l) => (
+              <span key={l}>{l}</span>
+            ))}
           </div>
         </>
       )}
-      {layer === 'rgb' && <span className="muted">R = HH · G = HV · B = HH/HV</span>}
-      {layer === 'water' && (
+      {lg && lg.colors.length === 1 && (
         <span>
-          <i className="legend__swatch" style={{ background: 'var(--accent)' }} />
-          Open water
+          <i className="legend__swatch" style={{ background: lg.colors[0] }} />
+          {lg.labels[0]}
         </span>
       )}
-      {showChange && (
-        <div>
+      {layer?.kind === 'change' && lg && (
+        <div className="legend__labels">
           <span>
-            <i className="legend__swatch" style={{ background: 'var(--darker)' }} />
-            Got darker (&gt; 3 dB)
-          </span>{' '}
+            <i className="legend__swatch" style={{ background: lg.colors[0] }} />
+            {lg.labels[0]}
+          </span>
           <span>
-            <i className="legend__swatch" style={{ background: 'var(--brighter)' }} />
-            Got brighter (&gt; 3 dB)
+            <i className="legend__swatch" style={{ background: lg.colors[1] }} />
+            {lg.labels[1]}
           </span>
         </div>
       )}
+      {!lg && layer && <span className="muted">No colour scale: {layer.title.toLowerCase()} is shown as is.</span>}
+      {overlays.map((o) => (
+        <span key={o.id}>
+          <i className="legend__swatch" style={{ background: overlayColor(o.id) }} />
+          {o.title}
+        </span>
+      ))}
     </div>
   )
 }
+

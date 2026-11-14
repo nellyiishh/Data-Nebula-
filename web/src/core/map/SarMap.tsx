@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Map as MapLibreMap, Marker, NavigationControl, ScaleControl } from 'maplibre-gl'
-import type { Coordinates, ImageSource, MapOptions } from 'maplibre-gl'
+import type { Coordinates, GeoJSONSourceSpecification, ImageSource, MapOptions } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './SarMap.css'
 
-// Shared map used by the time-slider view and by both halves of the swipe compare.
-// It knows nothing about sites or features: it draws one radar image, one optional
-// overlay (change map), markers, and reports clicks.
+// Shared map used by every screen. It knows nothing about sites or features: it draws one
+// main raster, extra raster overlays, GeoJSON overlays and markers, and reports clicks.
 
 export type Corners = Coordinates
 
@@ -16,19 +15,69 @@ export interface MapMarker {
   lat: number
   label: string
 }
+export interface ImageOverlay {
+  id: string
+  url: string
+  opacity?: number
+}
+export interface VectorOverlay {
+  id: string
+  url: string
+  /** polygon: filled outline · outline: dashed line · exposure: points (buildings) + lines (roads) */
+  style: 'polygon' | 'outline' | 'exposure'
+  /** Any CSS colour or var(--token). */
+  color: string
+}
 
 export interface SarMapProps {
+  /** Area to fit: top-left, top-right, bottom-right, bottom-left. */
   corners: Corners
-  imageUrl: string | null
+  imageUrl?: string | null
   imageOpacity?: number
-  overlayUrl?: string | null
-  /** Shown in the corner of the map: every image must show its date and polarisation. */
+  images?: ImageOverlay[]
+  vectors?: VectorOverlay[]
+  /** Shown in the corner of the map: every radar image must show its date and polarisation. */
   badge?: string
   markers?: MapMarker[]
   onMapClick?: (lon: number, lat: number) => void
   onMarkerClick?: (id: string) => void
   onReady?: (map: MapLibreMap) => void
   showControls?: boolean
+  interactive?: boolean
+  padding?: number
+  /** Drape everything on a 3D elevation model (DEM), tilted. */
+  terrain?: boolean
+  /** Contrast stretch for the main raster, −1…1 (0 = as delivered). */
+  contrast?: number
+}
+
+// Open elevation tiles (AWS Open Data "Terrain Tiles", terrarium encoding, no key).
+// Elevation comes from a DEM (SRTM and others), not from the radar image.
+const DEM_SOURCE = {
+  type: 'raster-dem' as const,
+  tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+  encoding: 'terrarium' as const,
+  tileSize: 256,
+  maxzoom: 14,
+  attribution: 'Elevation: <a href="https://registry.opendata.aws/terrain-tiles/">AWS Terrain Tiles</a> (SRTM and others)',
+}
+
+function setTerrain(map: MapLibreMap, on: boolean) {
+  if (on) {
+    if (!map.getSource('dem')) map.addSource('dem', DEM_SOURCE)
+    if (!map.getLayer('hillshade'))
+      // Above the basemap, below the radar image.
+      map.addLayer(
+        { id: 'hillshade', type: 'hillshade', source: 'dem', paint: { 'hillshade-exaggeration': 0.4 } },
+        map.getLayer('sar') ? 'sar' : undefined,
+      )
+    map.setTerrain({ source: 'dem', exaggeration: 1.6 })
+    map.easeTo({ pitch: 62, bearing: -20, duration: 900 })
+  } else {
+    map.setTerrain(null)
+    if (map.getLayer('hillshade')) map.removeLayer('hillshade')
+    map.easeTo({ pitch: 0, bearing: 0, duration: 600 })
+  }
 }
 
 const BASEMAP: MapOptions['style'] = {
@@ -38,39 +87,90 @@ const BASEMAP: MapOptions['style'] = {
       type: 'raster',
       tiles: ['a', 'b', 'c'].map((s) => `https://${s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png`),
       tileSize: 256,
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      attribution:
+        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
     },
   },
   layers: [{ id: 'base', type: 'raster', source: 'base' }],
 }
 
-function setImage(map: MapLibreMap, id: string, url: string | null, corners: Corners, opacity: number) {
+/** MapLibre cannot read CSS variables, so resolve var(--x) against :root. */
+function resolveColor(c: string) {
+  const m = /^var\((--[\w-]+)\)$/.exec(c)
+  return m ? getComputedStyle(document.documentElement).getPropertyValue(m[1]).trim() || '#ffffff' : c
+}
+
+function setImage(map: MapLibreMap, id: string, url: string | null | undefined, corners: Corners, opacity: number) {
   const src = map.getSource(id) as ImageSource | undefined
   if (!url) {
     if (map.getLayer(id)) map.removeLayer(id)
     if (src) map.removeSource(id)
     return
   }
-  if (src) {
-    src.updateImage({ url, coordinates: corners })
-  } else {
+  if (src) src.updateImage({ url, coordinates: corners })
+  else {
     map.addSource(id, { type: 'image', url, coordinates: corners })
-    map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-fade-duration': 0 } })
+    // Keep images under vector overlays.
+    const firstVector = map.getStyle().layers.find((l) => l.id.startsWith('vec:'))?.id
+    map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-fade-duration': 0 } }, firstVector)
   }
   map.setPaintProperty(id, 'raster-opacity', opacity)
+}
+
+function addVector(map: MapLibreMap, v: VectorOverlay) {
+  const sid = `vec:${v.id}`
+  const color = resolveColor(v.color)
+  map.addSource(sid, { type: 'geojson', data: v.url } satisfies GeoJSONSourceSpecification)
+  if (v.style === 'polygon') {
+    map.addLayer({ id: `${sid}:fill`, type: 'fill', source: sid, paint: { 'fill-color': color, 'fill-opacity': 0.12 } })
+    map.addLayer({ id: `${sid}:line`, type: 'line', source: sid, paint: { 'line-color': color, 'line-width': 2 } })
+  } else if (v.style === 'outline') {
+    map.addLayer({
+      id: `${sid}:line`,
+      type: 'line',
+      source: sid,
+      paint: { 'line-color': color, 'line-width': 1.5, 'line-dasharray': [3, 3] },
+    })
+  } else {
+    map.addLayer({
+      id: `${sid}:line`,
+      type: 'line',
+      source: sid,
+      filter: ['==', ['geometry-type'], 'LineString'],
+      paint: { 'line-color': color, 'line-width': 3, 'line-opacity': 0.8 },
+    })
+    map.addLayer({
+      id: `${sid}:pt`,
+      type: 'circle',
+      source: sid,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: { 'circle-color': color, 'circle-radius': 3.5, 'circle-stroke-color': '#000', 'circle-stroke-width': 1 },
+    })
+  }
+}
+
+function removeVector(map: MapLibreMap, id: string) {
+  const sid = `vec:${id}`
+  for (const suffix of [':fill', ':line', ':pt']) if (map.getLayer(sid + suffix)) map.removeLayer(sid + suffix)
+  if (map.getSource(sid)) map.removeSource(sid)
 }
 
 export function SarMap({
   corners,
   imageUrl,
   imageOpacity = 1,
-  overlayUrl = null,
+  images = [],
+  vectors = [],
   badge,
   markers = [],
   onMapClick,
   onMarkerClick,
   onReady,
   showControls = true,
+  interactive = true,
+  padding = 40,
+  terrain = false,
+  contrast = 0,
 }: SarMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
@@ -88,15 +188,17 @@ export function SarMap({
         container: containerRef.current!,
         style: BASEMAP,
         bounds: [corners[3], corners[1]],
-        fitBoundsOptions: { padding: 40 },
+        fitBoundsOptions: { padding },
         attributionControl: { compact: true },
+        interactive,
+        cooperativeGestures: interactive, // page scroll is not hijacked by the map
       })
     } catch (e) {
       // Usually "WebGL2 is required". Keep the rest of the page usable instead of a blank screen.
       setInitError(e instanceof Error ? e.message : String(e))
       return
     }
-    if (showControls) {
+    if (showControls && interactive) {
       map.addControl(new NavigationControl({ showCompass: false }), 'top-right')
       map.addControl(new ScaleControl(), 'bottom-left')
     }
@@ -117,7 +219,7 @@ export function SarMap({
 
   const cornersKey = JSON.stringify(corners)
   useEffect(() => {
-    if (ready) mapRef.current!.fitBounds([corners[3], corners[1]], { padding: 40, duration: 600 })
+    if (ready) mapRef.current!.fitBounds([corners[3], corners[1]], { padding, duration: 600 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, cornersKey])
 
@@ -127,9 +229,40 @@ export function SarMap({
   }, [ready, imageUrl, imageOpacity, cornersKey])
 
   useEffect(() => {
-    if (ready) setImage(mapRef.current!, 'overlay', overlayUrl, corners, 0.9)
+    const map = mapRef.current
+    if (ready && map?.getLayer('sar')) map.setPaintProperty('sar', 'raster-contrast', contrast)
+  }, [ready, contrast, imageUrl])
+
+  const firstTerrainRun = useRef(true)
+  useEffect(() => {
+    if (!ready) return
+    // Skip the initial "off" so a flat map does not animate on load.
+    if (firstTerrainRun.current && !terrain) return
+    firstTerrainRun.current = false
+    setTerrain(mapRef.current!, terrain)
+  }, [ready, terrain])
+
+  const imagesKey = JSON.stringify(images)
+  const shownImages = useRef<string[]>([])
+  useEffect(() => {
+    if (!ready) return
+    const map = mapRef.current!
+    for (const id of shownImages.current) if (!images.some((i) => `img:${i.id}` === id)) setImage(map, id, null, corners, 1)
+    for (const i of images) setImage(map, `img:${i.id}`, i.url, corners, i.opacity ?? 1)
+    shownImages.current = images.map((i) => `img:${i.id}`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, overlayUrl, cornersKey])
+  }, [ready, imagesKey, cornersKey])
+
+  const vectorsKey = JSON.stringify(vectors)
+  const shownVectors = useRef<string[]>([])
+  useEffect(() => {
+    if (!ready) return
+    const map = mapRef.current!
+    for (const id of shownVectors.current) removeVector(map, id)
+    for (const v of vectors) addVector(map, v)
+    shownVectors.current = vectors.map((v) => v.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, vectorsKey])
 
   const markersKey = JSON.stringify(markers)
   useEffect(() => {

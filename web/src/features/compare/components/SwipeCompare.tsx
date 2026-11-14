@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import { SarMap } from '../../../core/map/SarMap'
-import type { Corners, MapMarker } from '../../../core/map/SarMap'
+import type { Corners, ImageOverlay, MapMarker, VectorOverlay } from '../../../core/map/SarMap'
 import './SwipeCompare.css'
 
 // Owner: Frontend 2 (compare). Two synced maps stacked; the right one is clipped by the divider.
@@ -15,11 +15,13 @@ interface Props {
   left: Side
   right: Side
   markers?: MapMarker[]
+  images?: ImageOverlay[]
+  vectors?: VectorOverlay[]
   onMapClick?: (lon: number, lat: number) => void
   onMarkerClick?: (id: string) => void
 }
 
-export function SwipeCompare({ corners, left, right, markers, onMapClick, onMarkerClick }: Props) {
+export function SwipeCompare({ corners, left, right, markers, images, vectors, onMapClick, onMarkerClick }: Props) {
   const [pos, setPos] = useState(50)
   const wrapRef = useRef<HTMLDivElement>(null)
   const maps = useRef<{ a?: MapLibreMap; b?: MapLibreMap }>({})
@@ -63,6 +65,8 @@ export function SwipeCompare({ corners, left, right, markers, onMapClick, onMark
         imageUrl={left.imageUrl}
         badge={left.badge}
         markers={markers}
+        images={images}
+        vectors={vectors}
         onMapClick={onMapClick}
         onMarkerClick={onMarkerClick}
         showControls={false}
@@ -76,6 +80,8 @@ export function SwipeCompare({ corners, left, right, markers, onMapClick, onMark
           corners={corners}
           imageUrl={right.imageUrl}
           markers={markers}
+          images={images}
+          vectors={vectors}
           onMapClick={onMapClick}
           onMarkerClick={onMarkerClick}
           onReady={(m) => {

@@ -1,47 +1,55 @@
-import { useState } from 'react'
-import { isStatic } from '../core/api/client'
 import { useSite, useSites } from '../features/sites/api'
+import { useUrlState } from '../core/url/useUrlState'
+import { PROJECT } from '../features/story/content'
+import { BriefPage } from './BriefPage'
 import { SitePage } from './SitePage'
 import './App.css'
 
 export function App() {
+  const [params, setParams] = useUrlState()
   const sites = useSites()
-  const [chosenId, setSiteId] = useState<string | null>(null)
-  const siteId = chosenId ?? (sites.status === 'ready' ? (sites.data[0]?.id ?? null) : null)
-
+  const siteId = params.site ?? (sites.status === 'ready' ? (sites.data[0]?.id ?? null) : null)
   const site = useSite(siteId)
+  const research = params.mode === 'research'
+
+  if (params.view === 'brief') {
+    if (site.status === 'ready') return <BriefPage site={site.data} />
+    if (site.status === 'error') return <p className="state-msg error app__msg">Could not load site: {site.error}</p>
+    return <p className="state-msg app__msg">Loading…</p>
+  }
 
   return (
     <div className="app">
       <header className="app__header">
-        <div className="app__brand">
-          <strong>Data Nebula</strong>
-          <span className="muted">Dancing with the SARs · NISAR surface change</span>
+        <a className="app__brand" href="#top">
+          <strong>{PROJECT.name}</strong>
+          <span className="muted">Dancing with the SARs · NASA Space Apps 2026</span>
+        </a>
+        <div className="mode-toggle" role="group" aria-label="Detail level">
+          <button type="button" className="btn" aria-pressed={!research} onClick={() => setParams({ mode: undefined })}>
+            Explore
+          </button>
+          <button type="button" className="btn" aria-pressed={research} onClick={() => setParams({ mode: 'research' })}>
+            Research
+          </button>
         </div>
-        {sites.status === 'ready' && sites.data.length > 1 && (
-          <select
-            aria-label="Study site"
-            className="app__site-select"
-            value={siteId ?? ''}
-            onChange={(e) => setSiteId(e.target.value)}
-          >
-            {sites.data.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} · {s.change_type}
-              </option>
-            ))}
-          </select>
-        )}
-        {isStatic && <span className="app__mode">static data</span>}
       </header>
 
-      <div className="app__body">
+      {site.status === 'ready' && site.data.source === 'demo' && (
+        <p className="demo-banner" role="note">
+          Demo data: these images and numbers are synthetic, made to build the app. They are not NISAR measurements.
+        </p>
+      )}
+
+      <main id="top" className="app__body">
         {sites.status === 'loading' && <p className="state-msg app__msg">Loading sites…</p>}
         {sites.status === 'error' && <p className="state-msg error app__msg">Could not load sites: {sites.error}</p>}
-        {sites.status === 'ready' && sites.data.length === 0 && <p className="state-msg app__msg">No sites yet.</p>}
+        {sites.status === 'ready' && sites.data.length === 0 && <p className="state-msg app__msg">No sites prepared yet.</p>}
         {site.status === 'error' && <p className="state-msg error app__msg">Could not load site: {site.error}</p>}
-        {site.status === 'ready' && <SitePage key={site.data.id} site={site.data} />}
-      </div>
+        {site.status === 'ready' && sites.status === 'ready' && (
+          <SitePage key={site.data.id} site={site.data} sites={sites.data} research={research} params={params} setParams={setParams} />
+        )}
+      </main>
     </div>
   )
 }

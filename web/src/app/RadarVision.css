@@ -1,0 +1,37 @@
+.radar-vision {
+  display: grid;
+  grid-template-columns: 1fr var(--sidebar-w);
+  gap: var(--space-3);
+}
+.radar-vision__map {
+  position: relative;
+  height: min(64vh, 600px);
+  min-height: 340px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.radar-vision__map-inner {
+  position: absolute;
+  inset: 0;
+}
+.radar-vision__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.radar-vision__hint {
+  font-size: 12px;
+  margin: 0;
+}
+.radar-vision__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-3);
+}
+
+@media (max-width: 900px) {
+  .radar-vision {
+    grid-template-columns: 1fr;
+  }
+}

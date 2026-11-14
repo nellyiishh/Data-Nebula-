@@ -96,10 +96,10 @@ data_nebula/
 |---|---|---|
 | Backend | Python 3.12+, FastAPI, Pydantic v2, SQLAlchemy 2, Alembic, uv, ruff, pyright, pytest | Python 3.12, FastAPI, Pydantic v2 + pydantic-settings, numpy, Pillow, uv, ruff, pyright, pytest. Read-only API, no SQLAlchemy/Alembic |
 | Database | PostgreSQL; Redis only for cache/queues | None: the API serves files the pipeline wrote to `data/derived/` |
-| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | TBD |
+| Web | TypeScript (strict), React (Vite or Next.js), TanStack Query, generated API client, Vitest + Testing Library, Playwright for e2e | React 19 + Vite + TS strict, oxlint; small `useJson` hook instead of TanStack Query; no tests yet (hackathon) |
 | Geo pipeline | Python: rasterio/GDAL, xarray + h5py (NISAR HDF5), asf_search / earthaccess for downloads; outputs COGs | `backend/pipeline/`: h5py, rasterio, scipy (uv group `pipeline`). Every source ends in `pipeline/writer.py:write_site` → PNG layers + `stack.npz`, no COGs |
 | Tile serving | TiTiler (COG → XYZ tiles) or pre-rendered static tiles | One pre-rendered transparent PNG per layer and date, placed by the site's four corners (EPSG:3857 grid) |
-| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | TBD |
+| Web map | MapLibre GL JS (or Leaflet); time slider + swipe compare; charts for time series | MapLibre GL 6, CARTO dark basemap, own swipe compare and SVG chart (no extra deps) |
 | Auth | One identity provider; backend verifies tokens; web never trusts its own role checks | TBD |
 
 Commands live in §8 — keep them exact and runnable once the stack is set.

@@ -311,3 +311,39 @@ def test_a_given_optical_layer_is_not_duplicated(tmp_path: Path) -> None:
     layers = json.loads((site_dir / "site.json").read_text())["slope_echo"]["layers"]
     optical = [layer for layer in layers if layer["kind"] == "optical"]
     assert [layer["title"] for layer in optical] == ["Hand-made"]
+
+
+def _write_catalog(ext_dir: Path) -> None:
+    entries = [
+        {
+            "date": "2017-04-23",
+            "type": "landslide, rain",
+            "name": "Kurbu-Tash slide (30 km N)",
+            "source": {"name": "NASA COOLR (GLC) · AGU Landslide Blog"},
+        }
+    ]
+    (ext_dir / "catalog.json").write_text(json.dumps({"radius_km": 100, "entries": entries}))
+
+
+def test_catalog_file_becomes_the_registered_events(tmp_path: Path) -> None:
+    ext_dir = write_tiny_ext(tmp_path / "ext")
+    _write_catalog(ext_dir)
+
+    site_dir = build_tiny_landslide(tmp_path / "derived", ext_dir)
+
+    catalog = json.loads((site_dir / "site.json").read_text())["slope_echo"]["catalog"]
+    assert [entry["name"] for entry in catalog] == ["Kurbu-Tash slide (30 km N)"]
+
+
+def test_a_given_catalog_is_kept(tmp_path: Path) -> None:
+    ext_dir = write_tiny_ext(tmp_path / "ext")
+    _write_catalog(ext_dir)
+    block = tiny_slope_echo()
+    block["catalog"] = [
+        {"date": "2020-01-01", "type": "flow", "name": "Hand-made", "source": {"name": "team"}}
+    ]
+
+    site_dir = build_tiny_landslide(tmp_path / "derived", ext_dir, block)
+
+    catalog = json.loads((site_dir / "site.json").read_text())["slope_echo"]["catalog"]
+    assert [entry["name"] for entry in catalog] == ["Hand-made"]

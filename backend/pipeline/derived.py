@@ -16,6 +16,7 @@ from app.features.sites.models import MercatorBounds, pixel_at
 from app.features.sites.rendering import encode_png, smoothed_difference
 from app.features.sites.schemas import PointOfInterest
 from app.features.sites.slope_echo import (
+    CatalogEntry,
     Exposure,
     ExtFrame,
     ExtLayer,
@@ -96,6 +97,17 @@ def _optical_layer(site_dir: Path) -> ExtLayer | None:
     )
 
 
+# Written by pipeline/catalog.py into data/ext/<site>/, copied here by write_site.
+CATALOG_NUMBERS_FILE = "ext/catalog.json"
+
+
+def _read_catalog(site_dir: Path) -> list[CatalogEntry] | None:
+    path = site_dir / CATALOG_NUMBERS_FILE
+    if not path.is_file():
+        return None
+    return [CatalogEntry.model_validate(e) for e in json.loads(path.read_text())["entries"]]
+
+
 def _read_exposure(site_dir: Path) -> Exposure | None:
     path = site_dir / EXPOSURE_NUMBERS_FILE
     return Exposure.model_validate_json(path.read_text()) if path.is_file() else None
@@ -134,6 +146,8 @@ def derive_slope_echo(
         overlays = update.get("overlays", block.overlays)
         if (site_dir / EXPOSURE_FILE).is_file() and all(o.id != EXPOSURE_ID for o in overlays):
             update["overlays"] = [*overlays, EXPOSURE_OVERLAY]
+    if block.catalog is None and (catalog := _read_catalog(site_dir)) is not None:
+        update["catalog"] = catalog
     if block.validation is None:
         update["validation"] = _validate(site_dir, block, dates, hh, bounds_merc, blind)
     return block.model_copy(update=update)

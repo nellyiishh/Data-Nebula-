@@ -6,7 +6,7 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 |---|---|---|
 | `GET /api/v1/health` | Wired | |
 | `GET /api/v1/sites…` (list, detail, stats, layers, change, timeseries) | Wired | Serves whatever the pipeline wrote to `data/derived/` |
-| `demo-reservoir` site | **Demo data** | Synthetic (`pipeline/make_demo_site.py`), `source: "demo"`. The UI must label it as not real |
+| `demo-reservoir` site | **Demo data**, local only | Synthetic (`pipeline/make_demo_site.py`), `source: "demo"`. The UI must label it as not real. Not in `data/web/`: export with `--site toguz-bulak` so it stays out |
 | IMERG rain (`pipeline/rain.py`) | Wired; real data for toguz-bulak | Writes `data/ext/<site>/rain.json` (one 0.1° cell, 30 days before the first pass → last pass). Every request is 403 until the Earthdata account accepts the GES DISC terms once. After the file exists, set `slope_echo.rain` in the manifest and rerun `prepare_nisar` |
 | Real NISAR site `toguz-bulak` | Wired (pipeline), exported to `data/web/` | `data/manifest.json`: track 156 A, frame 022, 6 PROVISIONAL GCOV passes 12 Aug – 11 Oct 2026 (event 10 Oct). Earthdata login read from `backend/.env` (EARTHDATA_* only). |
 | Camera layer (optical) | Wired (NASA HLS) | `pipeline/optical.py --site <id>` (after `prepare_nisar`, needs `EARTHDATA_TOKEN`) → `data/ext/<id>/optical/<date>.png` + `optical.json` (scene IDs, clear %); `write_site` adds the `optical` layer. Window reads are cached in `data/raw/<id>/hls/` |
@@ -32,6 +32,6 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Event facts | `TODO(source)` | Links for 42.8k m³, 348 mudflows, ADB atlas still missing. |
 | Site location | `TODO(site)` on the web fake only | Real site: Toguz-Bulak village 40.4721 N, 73.6266 E (OpenStreetMap); the web fake `togus-bulak` sits ~10 km away. The slide outline (Donuz-Oi section) is still unmapped. |
 | Team / AI-use text | `TODO(team)` | `web/src/features/story/content.ts`. |
-| Registered events (`catalog`) | **Demo** | Two of three entries are invented; replace with NASA COOLR / Global Landslide Catalog rows. |
+| Registered events (`catalog`) | Wired (NASA COOLR) for `toguz-bulak` | `pipeline/catalog.py --site <id>` → `data/ext/<id>/catalog.json`; `write_site` fills `catalog` unless the manifest gives one. The fake `togus-bulak` still has invented rows. |
 | 3D terrain | External tiles | AWS Open Data Terrain Tiles (terrarium), no key. Not checked in a WebGL browser yet. |
 | Listen to Earth | Wired (client only) | Web Audio; pitch follows the selected point's series, silence = missing value. |

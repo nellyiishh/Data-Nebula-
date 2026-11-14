@@ -84,11 +84,13 @@ mix, 5 coherence + 5 ground-motion pairs, radar-blind mask, raw example, one poi
    same side of the event, plus the first clear one after it. Web note: Radar Vision shows
    the latest camera frame on or before the radar date, so an after-image later than the
    last radar pass only appears in the Time Machine.
-3. **Registered events:** nearby rows from NASA's Global Landslide Catalog / COOLR →
-   `catalog`. Its records may stop years ago; show "none recorded" rather than inventing rows.
+3. ~~**Registered events**~~ **DONE:** `pipeline/catalog.py` (NASA COOLR reports, now at
+   `gis.earthdata.nasa.gov/portal/...`; the old hosts are gone). 26 reports within 100 km,
+   nearest 25 km, all from spring 2017; nothing newer nearby. Say so on screen 06.
 4. **Re-run `prepare_nisar` + `export_static`** after each of the above.
-5. **Remove the synthetic `demo-reservoir` from `data/web/`.** The web lists it next to the
-   real site today, so judges would see a fake water site.
+5. ~~**Remove the synthetic `demo-reservoir` from `data/web/`.**~~ **DONE.** It comes back if
+   `export_static` runs without `--site` while `data/derived/demo-reservoir/` exists; export
+   with `--site toguz-bulak`.
 
 **B. Needs a person first**
 6. **Rain:** `pipeline/rain.py` is written but not run. Someone with the Earthdata account

@@ -29,6 +29,9 @@ _INVALID: dict[int | str, dict[str, Any]] = {
     422: {"model": ErrorResponse, "description": "Invalid parameters."}
 }
 _ERRORS = {**_NOT_FOUND, **_INVALID}
+# Browser/CDN cache for everything the pipeline wrote (images, story files). Owner: these
+# routes. TTL 1 hour. Invalidation: none; files only change when the pipeline reruns, after
+# which clients may see old images for up to an hour (docs/decisions/2026-11-14-http-cache.md).
 _IMAGE_CACHE = {"Cache-Control": "public, max-age=3600"}
 # GeoJSON is not in every platform's mimetypes table.
 _EXTRA_TYPES = {".geojson": "application/geo+json"}
@@ -145,4 +148,6 @@ def get_timeseries(
 def get_site_file(site_id: SiteId, file_path: str, service: SiteServiceDep) -> FileResponse:
     path = service.site_file(site_id, file_path)
     media_type = _EXTRA_TYPES.get(path.suffix) or mimetypes.guess_type(path.name)[0]
-    return FileResponse(path, media_type=media_type or "application/octet-stream")
+    return FileResponse(
+        path, media_type=media_type or "application/octet-stream", headers=_IMAGE_CACHE
+    )

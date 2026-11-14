@@ -331,6 +331,10 @@ uv run --group pipeline python -m pipeline.catalog --site <id>   # NASA COOLR re
 uv run python -m pipeline.export_static   # prepared sites → data/web/ (website data; web serves it at /data)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 
+# repo root: server image (API + data/derived/toguz-bulak baked in; see backend/Dockerfile)
+docker build --platform linux/amd64 -f backend/Dockerfile -t data-nebula-api .
+docker run -p 8080:8080 -e NEBULA_CORS_ORIGINS='["https://<web-domain>"]' data-nebula-api
+
 # web/
 npm ci
 npm run lint && npm run typecheck         # oxlint + tsc -b

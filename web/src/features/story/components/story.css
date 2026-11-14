@@ -52,7 +52,7 @@
   gap: var(--space-2);
 }
 .event-card {
-  border-left: 3px solid var(--danger);
+  border-left: 3px solid var(--event);
 }
 
 .data-limits {

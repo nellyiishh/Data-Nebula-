@@ -22,11 +22,11 @@
   fill: currentColor;
 }
 .time-chart .event line {
-  stroke: var(--danger);
+  stroke: var(--event);
   stroke-width: 2;
 }
 .time-chart .event text {
-  fill: var(--danger);
+  fill: var(--event);
   font-size: 10px;
   font-weight: 600;
 }

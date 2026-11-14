@@ -81,3 +81,14 @@
 .listen__caption {
   font-size: 12px;
 }
+.explorer__legend {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.explorer__toggles {
+  margin-top: var(--space-2);
+}
+.mono {
+  font-family: var(--font-mono);
+}

@@ -2,7 +2,9 @@
 // "What we know and what we don't" screen. Site-specific text lives in site.json → slope_echo.
 
 export const PROJECT = {
-  name: 'Slope Echo',
+  // TODO(team): the team is choosing between "Slope Echo" and "TRACE"; this is the only place to change it.
+  name: 'TRACE',
+  fullName: 'Terrain Research And Change Exploration',
   tagline: 'Rain loads it. Radar hears it. People live below it.',
   mission: 'Explore the invisible changes of our planet: NASA-ISRO NISAR radar turned into stories you can play, compare and check.',
   // TODO(team): confirm the repo URL that judges should see.

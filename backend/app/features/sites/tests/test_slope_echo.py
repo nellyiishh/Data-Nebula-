@@ -63,6 +63,13 @@ def test_ext_files_are_served(slide_client: TestClient) -> None:
     assert layer.headers["content-type"] == "image/png"
 
 
+def test_site_files_are_cacheable_like_layer_images(slide_client: TestClient) -> None:
+    file = slide_client.get(f"{SITE}/files/ext/rain.json")
+    layer = slide_client.get(f"{SITE}/layers/hh/2026-06-20.png")
+
+    assert file.headers["cache-control"] == layer.headers["cache-control"]
+
+
 @pytest.mark.parametrize(
     "relative",
     ["stack.npz", "site.json", "ext/missing.json", "ext/../stack.npz", "ext/%2e%2e/stack.npz"],

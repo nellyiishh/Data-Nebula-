@@ -1,5 +1,6 @@
 """Layers derived for a landslide story while a site is written: the raw linear-power
-example, the radar-blind overlay and the scar-vs-stable validation numbers."""
+example, the radar-blind overlay, the scar-vs-stable validation numbers and the exposure
+block (from pipeline/exposure.py output)."""
 
 import datetime as dt
 import json
@@ -18,6 +19,7 @@ from app.features.sites.slope_echo import (
     ExtFrame,
     ExtLayer,
     ExtOverlay,
+    Exposure,
     Legend,
     RawExample,
     SlopeEcho,
@@ -48,6 +50,28 @@ BLIND_OVERLAY = ExtOverlay(
 )
 
 
+# Written by pipeline/exposure.py into data/ext/<site>/, copied here by write_site.
+EXPOSURE_ID = "exposure"
+EXPOSURE_FILE = "ext/exposure.geojson"
+EXPOSURE_NUMBERS_FILE = "ext/exposure.json"
+EXPOSURE_OVERLAY = ExtOverlay(
+    id=EXPOSURE_ID,
+    kind="exposure",
+    title="Buildings and roads nearby",
+    file=EXPOSURE_FILE,
+    description="Buildings (points) and drivable roads (lines) mapped in OpenStreetMap near "
+    "the slide. Rural buildings are often missing from the map.",
+    source=SourceRef(
+        name="© OpenStreetMap contributors", url="https://www.openstreetmap.org/copyright"
+    ),
+)
+
+
+def _read_exposure(site_dir: Path) -> Exposure | None:
+    path = site_dir / EXPOSURE_NUMBERS_FILE
+    return Exposure.model_validate_json(path.read_text()) if path.is_file() else None
+
+
 def derive_slope_echo(
     site_dir: Path,
     block: SlopeEcho,
@@ -73,6 +97,11 @@ def derive_slope_echo(
         (site_dir / BLIND_FILE).write_bytes(encode_png(_mask_rgba(blind, BLIND_RGBA)))
         others = [overlay for overlay in block.overlays if overlay.id != BLIND_ID]
         update["overlays"] = [*others, BLIND_OVERLAY]
+    if block.exposure is None and (exposure := _read_exposure(site_dir)) is not None:
+        update["exposure"] = exposure
+        overlays = update.get("overlays", block.overlays)
+        if (site_dir / EXPOSURE_FILE).is_file() and all(o.id != EXPOSURE_ID for o in overlays):
+            update["overlays"] = [*overlays, EXPOSURE_OVERLAY]
     if block.validation is None:
         update["validation"] = _validate(site_dir, block, dates, hh, bounds_merc, blind)
     return block.model_copy(update=update)

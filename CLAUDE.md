@@ -324,6 +324,7 @@ uv run --group pipeline pytest            # full suite — required before done 
 uv run python -m app.export_openapi       # regenerate contracts/openapi.json after any API change
 uv run python -m pipeline.make_demo_site  # synthetic demo site → data/derived/demo-reservoir/
 uv run python -m pipeline.prepare_nisar   # real NISAR → same files
+uv run --group pipeline python -m pipeline.rain --site <id>  # IMERG daily rain → data/ext/<id>/rain.json
 uv run python -m pipeline.export_static   # prepared sites → data/web/ (website data; web serves it at /data)
 uv run uvicorn app.main:app --reload      # run on :8000; docs at /docs
 

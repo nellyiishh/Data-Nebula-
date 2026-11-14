@@ -1,0 +1,12 @@
+{
+  "radius_km": 2.0,
+  "buildings": 14,
+  "roads_km": 11.97,
+  "nearest_settlement": "Toguz-Bulak",
+  "distance_km": 0.0,
+  "method": "OpenStreetMap buildings (each counted once) and road length within 2 km of Toguz-Bulak village, fetched 2026-11-14. Roads are drivable classes clipped to the circle; footpaths are left out. Counts what is near the slide: not a hazard or population estimate, and OpenStreetMap may miss buildings in rural areas.",
+  "source": {
+    "name": "© OpenStreetMap contributors",
+    "url": "https://www.openstreetmap.org/copyright"
+  }
+}

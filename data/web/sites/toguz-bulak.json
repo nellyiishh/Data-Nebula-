@@ -1,0 +1,322 @@
+{
+  "id": "toguz-bulak",
+  "name": "Toguz-Bulak landslide",
+  "center": [
+    73.6275,
+    40.47250786485927
+  ],
+  "change_type": "landslide",
+  "source": "nisar",
+  "corners": [
+    [
+      73.58,
+      40.505
+    ],
+    [
+      73.675,
+      40.505
+    ],
+    [
+      73.675,
+      40.440000000000005
+    ],
+    [
+      73.58,
+      40.440000000000005
+    ]
+  ],
+  "layers": [
+    "hh",
+    "hv",
+    "rgb"
+  ],
+  "acquisitions": [
+    {
+      "date": "2026-08-12",
+      "granule_id": "NISAR_L2_PR_GCOV_027_156_A_022_2005_DHDH_A_20260812T001558_20260812T001633_P05023_N_F_J_001",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    },
+    {
+      "date": "2026-08-24",
+      "granule_id": "NISAR_L2_PR_GCOV_028_156_A_022_2005_DHDH_A_20260824T001558_20260824T001633_P05023_N_F_J_001",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    },
+    {
+      "date": "2026-09-05",
+      "granule_id": "NISAR_L2_PR_GCOV_029_156_A_022_2005_DHDH_A_20260905T001558_20260905T001633_P05023_N_F_J_002",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    },
+    {
+      "date": "2026-09-17",
+      "granule_id": "NISAR_L2_PR_GCOV_030_156_A_022_2005_DHDH_A_20260917T001558_20260917T001632_P05023_N_F_J_001",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "granule_id": "NISAR_L2_PR_GCOV_031_156_A_022_2005_DHDH_A_20260929T001558_20260929T001633_P05023_N_F_J_001",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    },
+    {
+      "date": "2026-10-11",
+      "granule_id": "NISAR_L2_PR_GCOV_032_156_A_022_2005_DHDH_A_20261011T001558_20261011T001633_P05023_N_F_J_001",
+      "band": "L",
+      "polarizations": [
+        "HH",
+        "HV"
+      ]
+    }
+  ],
+  "points_of_interest": [
+    {
+      "id": "village",
+      "name": "Toguz-Bulak village",
+      "lon": 73.6265838,
+      "lat": 40.4720734,
+      "note": "Village centre from OpenStreetMap. The exact slide (Donuz-Oi section) is not mapped yet."
+    }
+  ],
+  "attribution": "Contains NISAR L-band data (NASA/ISRO), distributed by the ASF DAAC. Processed by Data Nebula.",
+  "display": {
+    "hh": {
+      "min_db": -25.0,
+      "max_db": 0.0
+    },
+    "hv": {
+      "min_db": -32.0,
+      "max_db": -8.0
+    },
+    "ratio": {
+      "min_db": 0.0,
+      "max_db": 15.0
+    },
+    "change_threshold_db": 3.0,
+    "water_threshold_db": -18.0,
+    "darker_color": "#d73027",
+    "brighter_color": "#4575b4",
+    "water_color": "#1e90ff"
+  },
+  "slope_echo": {
+    "region": "Kara-Kulja district, Osh region",
+    "country": "Kyrgyzstan",
+    "event": {
+      "date": "2026-10-10",
+      "label": "Landslide, about 42.8 thousand m³ of ground on the move",
+      "source": {
+        "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
+        "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi.md"
+      }
+    },
+    "facts": [
+      {
+        "text": "About 42,800 m³ of ground started moving on 10 October 2026 around 14:00, at roughly 1.1 m per hour, with a 220 m crack.",
+        "source": {
+          "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
+          "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi.md"
+        }
+      },
+      {
+        "text": "11 people from two families were evacuated; two houses lie in the slide's possible path.",
+        "source": {
+          "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
+          "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi.md"
+        }
+      },
+      {
+        "text": "The Ylai-Talaa–Gülchö road (detour at km 22–23), a substation and power lines are at risk.",
+        "source": {
+          "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
+          "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi.md"
+        }
+      }
+    ],
+    "story": {
+      "place": {
+        "explore": "A slope above Toguz-Bulak village in the mountains of Osh region began to slide on 10 October 2026.",
+        "research": "Donuz-Oi section, Kara-Kulja district. ~42.8 thousand m³, ~1.1 m/h, 220 m tension crack (MChS)."
+      },
+      "rain": {
+        "explore": "September was the wettest month here, with 72 mm and 30 mm on 5 September alone. The week before the slide was almost dry: 4.5 mm, and none on 10 October.",
+        "research": "IMERG Late daily V07, 0.1° cell at 40.45 N, 73.65 E. 13 Jul – 11 Oct: 137 mm, 22 days above 1 mm. 30 days before the event: 40.9 mm; 7 days: 4.5 mm. No same-day trigger; earlier wetting may have loaded the slope, which rain data alone cannot show."
+      },
+      "radar": {
+        "explore": "NISAR's L-band radar sees the ground through cloud, day and night, every 12 days on this track.",
+        "research": "NISAR L2 GCOV, track 156 ascending, frame 022, 20 m pixels, HH and HV, provisional calibration (CRID P05023)."
+      },
+      "tracking": {
+        "explore": "Radar compares each pass with the one 12 days before. Where the ground slid, the two no longer match (low coherence), and slow creep shows up as centimetres of motion.",
+        "research": "NISAR GUNW, 5 consecutive pairs 12 Aug – 11 Oct. Coherence at 20 m; unwrapped phase at 80 m minus the ionosphere screen, LOS = −φλ/4π (+ = toward the satellite), referenced to the site median, blank where coherence < 0.3."
+      },
+      "exposure": {
+        "explore": "Two houses, a road, a substation and power lines are in the slide's possible path.",
+        "research": "From the Ministry of Emergency Situations report; no building count from maps yet."
+      }
+    },
+    "layers": [
+      {
+        "id": "coherence",
+        "kind": "coherence",
+        "title": "Coherence",
+        "unit": "0–1",
+        "description": "How alike two passes 12 days apart are. Low means the surface changed (sliding ground, but also snow, wet soil or growing plants).",
+        "source": {
+          "name": "NISAR L2 GUNW (NASA/ISRO), ASF DAAC",
+          "url": "https://nisar-docs.asf.alaska.edu/gunw/"
+        },
+        "frames": [
+          {
+            "from": "2026-08-12",
+            "to": "2026-08-24",
+            "file": "ext/coherence/2026-08-12_2026-08-24.png"
+          },
+          {
+            "from": "2026-08-24",
+            "to": "2026-09-05",
+            "file": "ext/coherence/2026-08-24_2026-09-05.png"
+          },
+          {
+            "from": "2026-09-05",
+            "to": "2026-09-17",
+            "file": "ext/coherence/2026-09-05_2026-09-17.png"
+          },
+          {
+            "from": "2026-09-17",
+            "to": "2026-09-29",
+            "file": "ext/coherence/2026-09-17_2026-09-29.png"
+          },
+          {
+            "from": "2026-09-29",
+            "to": "2026-10-11",
+            "file": "ext/coherence/2026-09-29_2026-10-11.png"
+          }
+        ],
+        "legend": {
+          "colors": [
+            "#0000ff",
+            "#ffd9a3"
+          ],
+          "labels": [
+            "0 changed",
+            "1 unchanged"
+          ]
+        }
+      },
+      {
+        "id": "displacement",
+        "kind": "displacement",
+        "title": "Ground motion",
+        "unit": "cm",
+        "description": "Movement toward or away from the satellite in 12 days, relative to the site median. Blank where coherence is too low to trust.",
+        "source": {
+          "name": "NISAR L2 GUNW (NASA/ISRO), ASF DAAC",
+          "url": "https://nisar-docs.asf.alaska.edu/gunw/"
+        },
+        "frames": [
+          {
+            "from": "2026-08-12",
+            "to": "2026-08-24",
+            "file": "ext/displacement/2026-08-12_2026-08-24.png"
+          },
+          {
+            "from": "2026-08-24",
+            "to": "2026-09-05",
+            "file": "ext/displacement/2026-08-24_2026-09-05.png"
+          },
+          {
+            "from": "2026-09-05",
+            "to": "2026-09-17",
+            "file": "ext/displacement/2026-09-05_2026-09-17.png"
+          },
+          {
+            "from": "2026-09-17",
+            "to": "2026-09-29",
+            "file": "ext/displacement/2026-09-17_2026-09-29.png"
+          },
+          {
+            "from": "2026-09-29",
+            "to": "2026-10-11",
+            "file": "ext/displacement/2026-09-29_2026-10-11.png"
+          }
+        ],
+        "legend": {
+          "colors": [
+            "#e63c32",
+            "#00000000",
+            "#326ef0"
+          ],
+          "labels": [
+            "−1.5 cm away",
+            "0",
+            "+1.5 cm toward"
+          ]
+        }
+      }
+    ],
+    "overlays": [
+      {
+        "id": "radar_blind",
+        "kind": "image",
+        "title": "Radar blind spots",
+        "file": "ext/radar_blind.png",
+        "description": "Slopes the radar cannot see from this track: layover (steep slopes facing the radar) and shadow (steep slopes facing away). From local terrain slope only; a ridge hiding a valley further away is not marked.",
+        "source": {
+          "name": "Copernicus DEM GLO-30 (© DLR e.V., © Airbus; provided under COPERNICUS by the EU and ESA) + NISAR GCOV look geometry",
+          "url": "https://registry.opendata.aws/copernicus-dem/"
+        }
+      }
+    ],
+    "rain": {
+      "file": "ext/rain.json",
+      "source": {
+        "name": "GPM IMERG Late daily V07, NASA GES DISC",
+        "url": "https://disc.gsfc.nasa.gov/datasets/GPM_3IMERGDL_07/summary"
+      },
+      "note": "One 0.1° cell (~10 km) over the village: regional rain, not rain measured on the slope."
+    },
+    "catalog": null,
+    "raw_example": {
+      "linear": "ext/raw/2026-09-29_linear.png",
+      "db": "layers/hh/2026-09-29.png",
+      "date": "2026-09-29"
+    },
+    "point_extras": {
+      "village": "ext/points/village.json"
+    },
+    "exposure": null,
+    "validation": null,
+    "limitations": [
+      "The first pass after the slide is about 16 hours after it began; later movement is not in this stack.",
+      "A ~43,000 m³ slide covers only a few hectares, a few dozen 20 m pixels at most.",
+      "Provisional NISAR calibration (P05023). Validated products start 21 Oct 2026 and are not mixed in.",
+      "The village point is from OpenStreetMap; the slide outline is not mapped yet, so no validation numbers.",
+      "Motion is relative to the site median and comes from 80 m phase: a slide of a few hectares is only a pixel or two, and fast motion decorrelates instead of showing as centimetres."
+    ]
+  },
+  "dates": [
+    "2026-08-12",
+    "2026-08-24",
+    "2026-09-05",
+    "2026-09-17",
+    "2026-09-29",
+    "2026-10-11"
+  ]
+}

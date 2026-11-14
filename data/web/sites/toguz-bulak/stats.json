@@ -1,0 +1,42 @@
+{
+  "site_id": "toguz-bulak",
+  "water_threshold_db": -18.0,
+  "series": [
+    {
+      "date": "2026-08-12",
+      "water_km2": 0.2441,
+      "mean_hh_db": -9.079,
+      "mean_hv_db": -19.403
+    },
+    {
+      "date": "2026-08-24",
+      "water_km2": 0.0,
+      "mean_hh_db": -6.7,
+      "mean_hv_db": -17.814
+    },
+    {
+      "date": "2026-09-05",
+      "water_km2": 0.0,
+      "mean_hh_db": -6.293,
+      "mean_hv_db": -18.112
+    },
+    {
+      "date": "2026-09-17",
+      "water_km2": 0.9763,
+      "mean_hh_db": -10.068,
+      "mean_hv_db": -20.398
+    },
+    {
+      "date": "2026-09-29",
+      "water_km2": 0.0,
+      "mean_hh_db": -7.01,
+      "mean_hv_db": -19.245
+    },
+    {
+      "date": "2026-10-11",
+      "water_km2": 0.0,
+      "mean_hh_db": -6.349,
+      "mean_hv_db": -18.696
+    }
+  ]
+}

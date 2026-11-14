@@ -230,3 +230,33 @@ def test_points_get_coherence_and_cumulative_motion(tmp_path: Path) -> None:
     # The point decorrelated in the second pair: no motion value, and the running total
     # stops rather than pretending nothing moved.
     assert series[1]["coherence"] == 0.1 and series[1]["los_cm"] is None
+
+
+def test_exposure_files_become_the_exposure_block_and_overlay(tmp_path: Path) -> None:
+    ext_dir = write_tiny_ext(tmp_path / "ext")
+    numbers = {
+        "radius_km": 2.0,
+        "buildings": 7,
+        "roads_km": 1.25,
+        "nearest_settlement": "Test village",
+        "distance_km": 0.3,
+        "method": "test method",
+        "source": {"name": "© OpenStreetMap contributors"},
+    }
+    (ext_dir / "exposure.json").write_text(json.dumps(numbers))
+    (ext_dir / "exposure.geojson").write_text('{"type": "FeatureCollection", "features": []}')
+
+    site_dir = build_tiny_landslide(tmp_path / "derived", ext_dir)
+
+    block = json.loads((site_dir / "site.json").read_text())["slope_echo"]
+    assert block["exposure"]["buildings"] == 7
+    overlay = next(o for o in block["overlays"] if o["id"] == "exposure")
+    assert overlay["kind"] == "exposure" and overlay["file"] == "ext/exposure.geojson"
+
+
+def test_no_exposure_files_means_no_exposure(tmp_path: Path) -> None:
+    site_dir = build_tiny_landslide(tmp_path / "derived", write_tiny_ext(tmp_path / "ext"))
+
+    block = json.loads((site_dir / "site.json").read_text())["slope_echo"]
+    assert block["exposure"] is None
+    assert all(o["id"] != "exposure" for o in block["overlays"])

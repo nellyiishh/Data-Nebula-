@@ -244,3 +244,21 @@ a.btn {
 .site-page .glance a {
   color: var(--accent);
 }
+
+/* Hero over the video backdrop (wide screens): text on the left, on the solid part of the
+   gradient, so it never meets the captions inside the video on the right. */
+@media (min-width: 761px) {
+  .site-page .hero__text {
+    max-width: none;
+    margin: 0;
+    padding-left: clamp(24px, 7vw, 140px);
+    padding-right: 0;
+  }
+  .site-page .hero__title {
+    font-size: clamp(38px, 4.6vw, 80px);
+    max-width: 17ch;
+  }
+  .site-page .hero__lede {
+    max-width: min(46ch, 40vw);
+  }
+}

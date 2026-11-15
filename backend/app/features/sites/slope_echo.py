@@ -44,15 +44,24 @@ class DualText(BaseModel):
     research: str
 
 
+class NewsImage(BaseModel):
+    """Small photo from a news report; `file` lives in web/public/news/ (site-independent)."""
+
+    file: str = Field(pattern=r"^[A-Za-z0-9_-]+\.(jpg|png)$")
+    alt: str
+
+
 class Event(BaseModel):
     date: dt.date
     label: str
     source: SourceRef
+    image: NewsImage | None = Field(**_OMIT_IF_NONE)
 
 
 class Fact(BaseModel):
     text: str
     source: SourceRef | None = Field(**_OMIT_IF_NONE)
+    image: NewsImage | None = Field(**_OMIT_IF_NONE)
 
 
 class ExtFrame(BaseModel):

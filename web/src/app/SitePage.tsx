@@ -86,7 +86,7 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
               Start the Time Machine
             </a>
             <a className="btn" href="#explore">
-              Choose a place
+              Explore a place
             </a>
           </div>
         </div>

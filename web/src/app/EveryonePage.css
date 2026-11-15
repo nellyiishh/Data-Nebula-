@@ -142,3 +142,20 @@
 .ev-listen p {
   margin: 0;
 }
+
+/* Hero over the video backdrop (wide screens): same left column as the specialist hero. */
+@media (min-width: 761px) {
+  .ev-hero__text {
+    max-width: none;
+    margin: 0;
+    padding-left: clamp(24px, 7vw, 140px);
+    padding-right: 0;
+  }
+  .ev-hero h1 {
+    font-size: clamp(34px, 4.6vw, 76px);
+    max-width: 13ch;
+  }
+  .ev-hero__lede {
+    max-width: min(48ch, 40vw);
+  }
+}

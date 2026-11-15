@@ -84,7 +84,7 @@ export function LayersPanel({ s, research }: { s: ExplorerState; research: boole
 /** Date A / Date B selectors for comparing two observations. */
 export function DatePairControls({ s }: { s: ExplorerState }) {
   const sel = (label: string, value: number, key: 'a' | 'b') => (
-    <label className="explorer__pair">
+    <label className={`explorer__pair explorer__pair--${key}`}>
       <span className="mono">{label}</span>
       <select value={value} onChange={(e) => s.actions.setPair(key, Number(e.target.value))}>
         {s.layer.frames.map((f, i) => (

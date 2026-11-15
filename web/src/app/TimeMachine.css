@@ -34,6 +34,13 @@
   padding: 2px var(--space-2);
   max-width: 220px;
 }
+/* Date B matches the gold badge on the map's right side. */
+.explorer__pair--b > span {
+  color: var(--accent-2);
+}
+.explorer__pair--b select {
+  border-color: var(--accent-2);
+}
 .explorer__why {
   margin: 0;
   font-size: 12px;

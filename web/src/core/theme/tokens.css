@@ -118,6 +118,33 @@ a.btn--primary {
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* Hover / focus lift for the small info widgets (cards, stats, pictures). Same language
+   as .btn: teal border, soft glow, 1px rise. :focus-within covers keyboard users. */
+.panel,
+.ws__card,
+.exposure__stat,
+.event-card,
+.report__fig,
+.news-thumb {
+  transition:
+    border-color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease);
+}
+.panel:hover,
+.panel:focus-within,
+.ws__card:hover,
+.ws__card:focus-within,
+.exposure__stat:hover,
+.event-card:hover,
+.report__fig:hover,
+.news-thumb:hover {
+  border-color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 6%, var(--surface-2));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -12px color-mix(in srgb, var(--accent) 60%, transparent);
+}
 h1,
 h2,
 h3 {
@@ -186,7 +213,13 @@ a.btn--report {
   :root {
     --dur: 0ms;
   }
-  .btn:hover:not(:disabled) {
+  .btn:hover:not(:disabled),
+  .panel:hover,
+  .ws__card:hover,
+  .exposure__stat:hover,
+  .event-card:hover,
+  .report__fig:hover,
+  .news-thumb:hover {
     transform: none;
   }
 }

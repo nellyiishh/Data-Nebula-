@@ -113,7 +113,7 @@ export function DatePairControls({ s }: { s: ExplorerState }) {
 export function TimelineBlock({ site, s, height = 150, width }: Common & { height?: number; width?: number }) {
   return (
     <>
-      <FrameSlider labels={s.layer.frames.map((f) => f.label)} index={s.fIdx} onChange={s.actions.setFrame} />
+      <FrameSlider labels={s.layer.frames.map((f) => f.label)} index={s.fIdx} onChange={s.actions.setFrame} playBlockedReason={s.playBlockedReason} />
       <RainTimeline rain={s.rain} passes={site.dates} event={s.event} activePass={s.frame?.date} onPassClick={s.actions.jumpToDate} height={height} width={width} />
     </>
   )

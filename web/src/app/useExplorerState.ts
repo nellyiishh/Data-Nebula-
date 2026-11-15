@@ -100,6 +100,8 @@ export function useExplorerState(site: SiteDetail, params: Params, setParams: (p
     frame,
     fIdx,
     compare,
+    // Play steps one map image; compare shows two, so there is nothing to animate.
+    playBlockedReason: compare ? 'The timeline cannot play in compare mode. Switch off Compare Date A ↔ Date B first.' : undefined,
     aIdx,
     bIdx,
     opacity,

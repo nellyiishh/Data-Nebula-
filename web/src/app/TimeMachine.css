@@ -127,3 +127,13 @@
 .mono {
   font-family: var(--font-mono);
 }
+
+/* Main page only: the caveat under the layer controls. */
+#time-machine .tm-caveat {
+  border-left: 3px solid var(--accent-2);
+}
+#time-machine .tm-caveat p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+}

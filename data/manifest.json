@@ -81,12 +81,12 @@
             "research": "NISAR L2 GCOV, track 156 ascending, frame 022, 20 m pixels, HH and HV, provisional calibration (CRID P05023)."
           },
           "tracking": {
-            "explore": "Radar compares each pass with the one 12 days before. Where the ground slid, the two no longer match (low coherence), and slow creep shows up as centimetres of motion.",
+            "explore": "Radar compares each pass with the one 12 days before. Where ground slides, the two passes stop matching (low coherence), and slow creep can show up as centimetres of motion. Across this landslide the pair shows no clear signal: the slide covers only a few dozen pixels and the next pass came about 16 hours after it began.",
             "research": "NISAR GUNW, 5 consecutive pairs 12 Aug – 11 Oct. Coherence at 20 m; unwrapped phase at 80 m minus the ionosphere screen, LOS = −φλ/4π (+ = toward the satellite), referenced to the site median, blank where coherence < 0.3."
           },
           "exposure": {
             "explore": "Two houses, a road, a substation and power lines are in the slide's possible path.",
-            "research": "From the Ministry of Emergency Situations report; no building count from maps yet."
+            "research": "Houses, road, substation and power lines at risk are from the Ministry of Emergency Situations report. Building and road counts are from OpenStreetMap within 2 km of the village centre, not of the slide, which is not mapped yet."
           }
         },
         "layers": [],

@@ -5,8 +5,11 @@ export const PROJECT = {
   // TODO(team): the team is choosing between "Slope Echo" and "TRACE"; this is the only place to change it.
   name: 'TRACE',
   fullName: 'Terrain Research And Change Exploration',
-  tagline: 'Rain loads it. Radar hears it. People live below it.',
-  mission: 'Explore the invisible changes of our planet: NASA-ISRO NISAR radar turned into stories you can play, compare and check.',
+  // Each sentence must stay true to the data: the slide is documented by the emergency service,
+  // NISAR passed before and after it, and the village is below the slope. Do not claim the radar
+  // detected the slide until a validated change on the scar shows it.
+  tagline: 'A slope gave way. Radar was watching. People live below it.',
+  mission: 'NASA-ISRO NISAR radar before and after a real landslide in Kyrgyzstan: what it recorded, what it could not resolve, and why. Play it, compare dates and check every number.',
   // TODO(team): confirm the repo URL that judges should see.
   repo: 'https://github.com/nellyiishh/Data-Nebula-',
 }
@@ -41,7 +44,7 @@ export const DATASETS: Dataset[] = [
     name: 'Sentinel-2 / Harmonized Landsat Sentinel-2 (HLS)',
     provider: 'ESA · NASA LP DAAC',
     url: 'https://hls.gsfc.nasa.gov/',
-    usedFor: 'Optical check of the scar, cloud comparison',
+    usedFor: 'Optical pictures of the same slope to compare with the radar',
   },
   {
     name: 'OpenStreetMap buildings and roads',
@@ -66,7 +69,7 @@ export const METHODS: string[] = [
 ]
 
 export const GLOBAL_LIMITS: string[] = [
-  'NISAR does not predict landslides. It shows slow movement and change after the fact.',
+  'NISAR does not predict landslides. It can show slow movement and surface change after the fact, when they are large enough for its pixels and fall between two passes.',
   'This is a visual tool, not an official warning. For safety follow your local emergency service.',
 ]
 

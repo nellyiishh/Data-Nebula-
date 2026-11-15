@@ -17,6 +17,11 @@ export const paths = {
     isStatic ? `${STATIC_ROOT}/sites/${id}/layers/${layer}/${date}.png` : api(`/sites/${id}/layers/${layer}/${date}.png`),
   change: (id: string, from: string, to: string) =>
     isStatic ? `${STATIC_ROOT}/sites/${id}/change/${from}_${to}.png` : api(`/sites/${id}/change.png?from=${from}&to=${to}`),
+  /** Numbers behind change.png (GET …/change-stats); static export writes them beside the PNG. */
+  changeStats: (id: string, from: string, to: string) =>
+    isStatic
+      ? `${STATIC_ROOT}/sites/${id}/change/${from}_${to}.json`
+      : api(`/sites/${id}/change-stats?from=${from}&to=${to}`),
   /** Static mode cannot answer arbitrary points, so it needs the nearest point of interest. */
   timeseries: (id: string, lon: number, lat: number, poiId?: string) =>
     isStatic

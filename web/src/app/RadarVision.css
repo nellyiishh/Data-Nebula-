@@ -35,3 +35,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Camera vs radar dates: shown as data, because they are rarely the same day. */
+.radar-vision__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px var(--space-3);
+  margin: 0;
+  font-size: 13px;
+}
+.radar-vision__val {
+  font-family: var(--font-mono);
+  color: var(--text);
+}

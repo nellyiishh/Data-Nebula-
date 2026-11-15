@@ -4,7 +4,9 @@
 
 .ev-hero {
   position: relative;
-  min-height: min(86vh, 760px);
+  /* Fill the first screen under the sticky header (~64 px), so the next heading starts below the
+     fold instead of peeking out half-cut. */
+  min-height: max(560px, calc(100svh - 64px));
   display: flex;
   align-items: flex-end;
 }
@@ -118,6 +120,14 @@
   font-size: 16px;
   color: var(--text-muted);
   max-width: 70ch;
+}
+.ev-explain--result {
+  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--accent-2);
+}
+.ev-explain--result strong {
+  color: var(--text);
 }
 
 .ev-listen {

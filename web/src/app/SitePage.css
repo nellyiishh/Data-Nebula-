@@ -145,3 +145,102 @@ a.btn {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Main page only: everything below is scoped to .site-page (CSS here is global). ---- */
+
+/* Study at a glance: a quiet spec strip under the hero, not another card row. */
+.site-page .glance {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.site-page .glance__grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4) var(--space-6);
+}
+.site-page .glance__grid > div {
+  min-width: 0;
+}
+.site-page .glance dt {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-bottom: 6px;
+}
+.site-page .glance dd {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.45;
+}
+.site-page .glance dd .muted {
+  font-size: 13px;
+}
+
+/* Rain numbers: big value over its label, side by side. */
+.site-page .rain-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* always three numbers */
+  gap: var(--space-3);
+  margin: var(--space-3) 0 0;
+}
+.site-page .rain-stats > div {
+  display: flex;
+  flex-direction: column-reverse; /* value first visually, label first for screen readers */
+  gap: 4px;
+}
+.site-page .rain-stats dd {
+  margin: 0;
+  font-size: clamp(20px, 5vw, 26px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--water);
+}
+.site-page .rain-stats dt {
+  font-size: 13px;
+}
+@media (max-width: 480px) {
+  .site-page .rain-stats {
+    gap: var(--space-2);
+  }
+  .site-page .rain-stats dt {
+    font-size: 12px;
+  }
+}
+
+/* Impact: keep the map in view while the long event list scrolls past it. */
+@media (min-width: 901px) {
+  .site-page .impact__map {
+    position: sticky;
+    top: 72px;
+  }
+}
+
+/* Data & science: the pass table gets the full row, so granule IDs stay on one line. */
+.site-page .data-limits__passes {
+  grid-column: 1 / -1;
+  overflow-x: auto;
+}
+.site-page .data-limits__passes .passes__granule {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+.site-page .validation--missing {
+  grid-column: 1 / -1;
+  border-left: 3px solid var(--accent-2);
+}
+.site-page .validation--missing p {
+  margin: 0;
+  max-width: 80ch;
+  line-height: 1.55;
+}
+.site-page .glance a {
+  color: var(--accent);
+}

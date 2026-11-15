@@ -7,7 +7,7 @@ import { EVERYONE, VIEW_MODES } from '../features/everyone/content'
 import type { ViewMode } from '../features/everyone/content'
 import { EveryoneSection, FactCard, HowRadarSees, WarningSigns } from '../features/everyone/components/EveryoneBlocks'
 import { ListenButton } from '../features/listen/ListenButton'
-import { useRain, useTimeSeries } from '../features/sites/api'
+import { useChangeStats, useRain, useTimeSeries } from '../features/sites/api'
 import { buildLayers, frameIndexFor } from '../features/sites/model/layers'
 import type { SiteDetail, SiteSummary } from '../features/sites/model/types'
 import { SourceLink } from '../features/story/components/Screen'
@@ -42,6 +42,9 @@ export function EveryonePage({ site, sites, onPickSite, onOpenSpecialists }: Pro
 
   const rain = useRain(site)
   const r30 = rain.status === 'ready' && se ? rainBefore(rain.data, se.event.date) : null
+  const r7 = rain.status === 'ready' && se ? rainBefore(rain.data, se.event.date, 7) : null
+  // Most of the month's rain fell before the last week: say so instead of implying rain set it off.
+  const dryWeek = r30 && r7 ? r7.total < 0.25 * r30.total : false
   const poi = site.points_of_interest[0]
   const series = useTimeSeries(site.id, poi ? { lon: poi.lon, lat: poi.lat, poiId: poi.id } : null)
   const demo = site.source === 'demo' ? ' · DEMO' : ''
@@ -54,6 +57,8 @@ export function EveryonePage({ site, sites, onPickSite, onOpenSpecialists }: Pro
       ? (change.frames.find((f) => (f.from ?? '') < se.event.date && f.date >= se.event.date) ?? change.frames[change.frames.length - 1])
       : change?.frames[change.frames.length - 1]
   const photo = optical?.frames[frameIndexFor(optical, last.date)]
+  // Real numbers behind the change picture, so an empty map is explained, not left to guess.
+  const stats = useChangeStats(site.id, eventChange?.from ? { from: eventChange.from, to: eventChange.date } : null)
 
   let map
   if (active.id === 'before-after') {
@@ -145,6 +150,17 @@ export function EveryonePage({ site, sites, onPickSite, onOpenSpecialists }: Pro
           <FrameSlider labels={hh.frames.map((f) => short(f.date))} index={frame} onChange={setFrame} frameMs={1200} />
         )}
         <p className="ev-explain">{active.explain}</p>
+        {active.id === 'changed' && stats.status === 'ready' && (
+          <p className="ev-explain ev-explain--result">
+            <strong>
+              {stats.data.changed_pct.toFixed(1)}% of the area ({stats.data.changed_km2.toFixed(3)} km²) changed by more than {stats.data.threshold_db} dB
+            </strong>{' '}
+            between {short(stats.data.from)} and {short(stats.data.to)}.{' '}
+            {stats.data.changed_pct < 1
+              ? 'Almost nothing crossed the threshold, so this pair does not show the landslide clearly. A small slide covers only a few dozen 20 m radar pixels, and one pair can miss it.'
+              : 'Coloured areas are where to look closer; they still need checking against photos and reports.'}
+          </p>
+        )}
       </EveryoneSection>
 
       <EveryoneSection id="ev-numbers" title="Three things worth knowing">
@@ -153,7 +169,11 @@ export function EveryonePage({ site, sites, onPickSite, onOpenSpecialists }: Pro
             <FactCard
               big={`${r30.total.toFixed(0)} mm`}
               label={`of rain in the ${r30.days} days before`}
-              note={`That is ${r30.total.toFixed(0)} litres of water on every square metre. Water makes soil heavy and slippery.`}
+              note={`That is ${r30.total.toFixed(0)} litres of water on every square metre, measured over a 10 km area, not on the slope itself. ${
+                dryWeek
+                  ? 'Most of it fell earlier: the last week was almost dry, so rain alone does not explain why the slope moved that day.'
+                  : 'Wet soil is heavier and weaker, but rain alone does not prove what set the slope moving.'
+              }`}
             />
           ) : (
             <FactCard big="—" label="Rain data not available yet" />
@@ -203,7 +223,10 @@ export function EveryonePage({ site, sites, onPickSite, onOpenSpecialists }: Pro
       </EveryoneSection>
 
       <EveryoneSection id="ev-more" title="Want the full analysis?">
-        <p>Specialists can compare any two dates, see ground motion in centimetres, check the method and download a report.</p>
+        <p>
+          Specialists can compare any two dates, see the radar's motion maps (centimetres along its line of sight), read why the
+          data does and does not show this slide, and download a report.
+        </p>
         <div>
           <button type="button" className="btn btn--primary ev-more__btn" onClick={onOpenSpecialists}>
             Open the specialist section

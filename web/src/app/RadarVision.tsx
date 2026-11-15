@@ -34,6 +34,15 @@ export function RadarVision({ site, research }: Props) {
   const o = optical?.frames[frameIndexFor(optical, date)]
   const r = radar?.frames[frameIndexFor(radar, date)]
   const raw = se?.raw_example
+  // The camera frame is the nearest optical scene on or before the radar date (the first one
+  // if none is earlier), so say how far apart the two pictures really are.
+  const gapDays = o && r ? Math.round((Date.parse(r.date) - Date.parse(o.date)) / 86_400_000) : null
+  const gapText =
+    gapDays === null
+      ? null
+      : gapDays === 0
+        ? 'Same day.'
+        : `Camera is ${Math.abs(gapDays)} day${Math.abs(gapDays) === 1 ? '' : 's'} ${gapDays > 0 ? 'before' : 'after'} the radar.`
 
   return (
     <Screen id="radar-vision" n={4} title="Radar Vision" text={se?.story.radar} research={research} wide>
@@ -53,9 +62,9 @@ export function RadarVision({ site, research }: Props) {
           )}
         </div>
         <aside className="panel radar-vision__side">
-          <h3>Same place, same day</h3>
+          <h3>Same place, nearest dates</h3>
           <label className="explorer__pair">
-            Date
+            Radar date
             <select value={dateIdx} onChange={(e) => setDateIdx(Number(e.target.value))}>
               {site.dates.map((d, i) => (
                 <option key={d} value={i}>
@@ -71,8 +80,20 @@ export function RadarVision({ site, research }: Props) {
               </button>
             ))}
           </div>
+          {o && r && (
+            <p className="radar-vision__dates" aria-live="polite">
+              <span>
+                Camera <span className="radar-vision__val">{o.label}</span>
+              </span>
+              <span>
+                Radar <span className="radar-vision__val">{r.label}</span>
+              </span>
+              <span className="muted">{gapText}</span>
+            </p>
+          )}
           <p className="muted radar-vision__hint">
-            Drag the divider. Try a cloudy date: the camera sees cloud, the radar still sees the slope.
+            Drag the divider. The camera picture is the nearest NASA HLS optical scene on or before the radar date, so the
+            two can be days apart; differences between them are not all change on the ground.
           </p>
           <h3>What radar is not</h3>
           <ul className="not-list">

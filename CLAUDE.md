@@ -344,8 +344,9 @@ npm run dev                               # http://localhost:5173
 ```
 
 - **Web deploy:** `.github/workflows/pages.yml` builds `web/` with `--base=/<repo>/` on push to
-  `main` and publishes it to GitHub Pages (Settings → Pages → Source: GitHub Actions). The site
-  data is the committed `data/web/`, so re-run `export_static` and commit it to update the site.
+  `main` and publishes it to GitHub Pages (Settings → Pages → Source: GitHub Actions). It sets
+  `VITE_API_URL` to the Cloud Run API, so new data means rebuilding and redeploying the image;
+  the committed `data/web/` is still bundled as the static fallback (empty `VITE_API_URL`).
   Asset/data URLs must go through `import.meta.env.BASE_URL`, never a hardcoded `/`.
 - **CI gate (one workflow):** lint + format check + typecheck + full tests with coverage +
   contract-drift check, for both apps, on PRs and the main branch. Warnings fail the build.

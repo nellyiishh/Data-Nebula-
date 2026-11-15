@@ -24,11 +24,9 @@ export const paths = {
         ? `${STATIC_ROOT}/sites/${id}/points/${poiId}.json`
         : null
       : api(`/sites/${id}/timeseries?lon=${lon}&lat=${lat}`),
-  /**
-   * Files referenced by the `slope_echo` extension, relative to the site folder.
-   * TODO(slope-echo-api): the backend does not serve these yet; always static for now.
-   */
-  siteFile: (id: string, rel: string) => `${STATIC_ROOT}/sites/${id}/${rel}`,
+  /** Files referenced by the `slope_echo` extension (ext/…, layers/…), relative to the site folder. */
+  siteFile: (id: string, rel: string) =>
+    isStatic ? `${STATIC_ROOT}/sites/${id}/${rel}` : api(`/sites/${id}/files/${rel}`),
 }
 
 export class ApiError extends Error {

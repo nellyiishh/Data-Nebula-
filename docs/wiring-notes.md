@@ -15,7 +15,7 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 | Server image (`backend/Dockerfile`, root `.dockerignore`) | Built and checked locally (arm64 + amd64); **not deployed** | API only, runtime deps from `uv.lock`, non-root, listens on `$PORT`. Bakes in `data/derived/toguz-bulak` (the demo site stays out), so data changes mean a rebuild until the bucket exists. `NEBULA_CORS_ORIGINS` must be set to the web domain at deploy, or browsers are blocked |
 | Static export → `data/web/` | Wired, **temporary** `TODO(server-backend)` | `pipeline/export_static.py` writes website data only there (bucket layout). `web/vite.config.ts` (`siteData`) serves it at `/data` in dev and copies it into the build; the demo files in `web/public/data/` were removed on 2026-11-14, so only backend sites are listed. Replaced by the hosted API + Cloud Storage later |
 | `slope_echo` block | Wired in the API | Optional field of the site detail, typed as in `web/.../types.ts`. Comes from `data/manifest.json`; its files from `data/ext/<site_id>/` (copied to `ext/`). Missing files fail the pipeline |
-| `GET /sites/{id}/files/{ext/…\|layers/…}` | Wired | Serves the `slope_echo` files in API mode. Web `paths.siteFile` still always uses static files (`TODO(slope-echo-api)` on the web side) |
+| `GET /sites/{id}/files/{ext/…\|layers/…}` | Wired | Serves the `slope_echo` files in API mode; web `paths.siteFile` uses it whenever `VITE_API_URL` is set |
 | Display ranges (`display` in site detail) | Wired | dB stretch, change threshold and colours the images were drawn with. Web legend can read them instead of `TODO(legend-api)` |
 | Radar-blind overlay (`radar_blind`) | Wired | `pipeline/radar_blind.py`: local-slope layover/shadow from Copernicus GLO-30 DEM + GCOV look geometry. Ridges hiding distant valleys are not caught |
 | Raw linear example | Wired | Last pass before the event, written by `pipeline/derived.py` when the block has none |
@@ -26,9 +26,9 @@ What is real, stubbed or demo-only today. Update this in the same change that al
 
 | Surface | State | Notes |
 |---|---|---|
-| All data | Real (`toguz-bulak`) | From the backend export in `data/web/`; the fake `togus-bulak` site and its generator were removed. A site with `source: "demo"` would still get the banner and `DEMO` badges. Set `VITE_API_URL` to use the API instead. |
+| All data | Real (`toguz-bulak`) | From the backend export in `data/web/`; the fake `togus-bulak` site and its generator were removed. A site with `source: "demo"` would still get the banner and `DEMO` badges. Set `VITE_API_URL` to use the API instead. The GitHub Pages build sets `VITE_API_URL` to the Cloud Run API (`.github/workflows/pages.yml`); empty it to go back to static files |
 | Contract types | Hand-written `TODO(contract-api)` | `web/src/features/sites/model/types.ts` mirrors `backend/app/features/sites/schemas.py`. `contracts/openapi.json` now includes `slope_echo`, `display` and `landslide`, so the whole file can be generated. |
-| `slope_echo` block in site.json | **Static only** `TODO(slope-echo-api)` | Event, story text, rain, coherence, displacement, optical, overlays, exposure, validation. Not in the API yet; files are read from `public/data/sites/{id}/ext/`. The backend now accepts and serves both (see Backend table). |
+| `slope_echo` block in site.json | Wired (API and static) | Comes with the site detail; its files load from `GET /sites/{id}/files/…` in API mode, from `data/web/` in static mode |
 | Click-a-point chart (static mode) | Snaps to nearest point of interest | Live API mode passes the clicked coordinates (HH/HV only; coherence/LOS only for points of interest). |
 | Legend stretch | `TODO(legend-api)` | `web/src/features/sites/model/layers.ts` — must match `backend/pipeline/writer.py`. |
 | Event facts | `TODO(source)` | Links for 42.8k m³, 348 mudflows, ADB atlas still missing. |

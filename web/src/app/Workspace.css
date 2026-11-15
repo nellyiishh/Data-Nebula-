@@ -217,6 +217,9 @@
   padding: var(--space-2) var(--space-3);
   margin-top: auto;
 }
+.ws__next.btn--report {
+  display: flex; /* icon + text on one line, full width like the other next buttons */
+}
 .ws__card .ws__next {
   margin-top: var(--space-3);
 }

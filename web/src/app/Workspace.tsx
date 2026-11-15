@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Brand } from '../core/ui/Brand'
+import { PdfIcon } from '../core/ui/PdfIcon'
 import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
 import { ReportBody } from '../features/report/components/ReportBody'
@@ -245,7 +246,8 @@ function RightPanel({ step, site, s, research, generated }: RightProps) {
     return (
       <section className="ws__card">
         <ReportBody site={site} rain={s.rain} generated={generated} compact />
-        <a className="btn btn--primary ws__next" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+        <a className="btn btn--report ws__next" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+          <PdfIcon />
           Generate full report (PDF)
         </a>
       </section>

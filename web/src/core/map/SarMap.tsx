@@ -4,6 +4,7 @@ import type { Coordinates, GeoJSONSourceSpecification, ImageSource, MapOptions }
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './SarMap.css'
+import { notify } from '../ui/notify'
 
 // MapLibre looks for its worker file next to its own script. Vite moves that script (dev
 // pre-bundle, build chunk) without the worker, so GeoJSON overlays never draw. `?url` makes
@@ -204,7 +205,9 @@ export function SarMap({
       })
     } catch (e) {
       // Usually "WebGL2 is required". Keep the rest of the page usable instead of a blank screen.
-      setInitError(e instanceof Error ? e.message : String(e))
+      const msg = e instanceof Error ? e.message : String(e)
+      setInitError(msg)
+      notify(`The map could not start: ${msg}`)
       return
     }
     if (showControls && interactive) {
@@ -214,6 +217,11 @@ export function SarMap({
     map.on('load', () => {
       setReady(true)
       handlers.current.onReady?.(map)
+    })
+    // Source/tile failures (offline, blocked host) otherwise only reach the console.
+    map.on('error', (e) => {
+      const source = (e as { sourceId?: string }).sourceId
+      notify(source === 'dem' ? '3D elevation data could not be loaded.' : 'Some map data could not be loaded.')
     })
     map.on('click', (e) => handlers.current.onMapClick?.(e.lngLat.lng, e.lngLat.lat))
     mapRef.current = map

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { notify } from '../ui/notify'
 import { getJson } from './client'
 
 export type Loadable<T> =
@@ -19,7 +20,9 @@ export function useJson<T>(url: string | null): Loadable<T> {
       .then((data) => setResult({ url, value: { status: 'ready', data } }))
       .catch((e: unknown) => {
         if (ctrl.signal.aborted) return
-        setResult({ url, value: { status: 'error', error: e instanceof Error ? e.message : String(e) } })
+        const error = e instanceof Error ? e.message : String(e)
+        notify(`Could not load data: ${error}`)
+        setResult({ url, value: { status: 'error', error } })
       })
     return () => ctrl.abort()
   }, [url])

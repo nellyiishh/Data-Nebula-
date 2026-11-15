@@ -139,10 +139,6 @@ a.btn {
 .site-card[aria-pressed='true'] {
   border-color: var(--accent);
 }
-.site-card--next {
-  border-style: dashed;
-  cursor: default;
-}
 
 @media (max-width: 900px) {
   .impact {

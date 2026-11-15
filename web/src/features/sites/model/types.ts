@@ -93,11 +93,17 @@ export interface ExtOverlay {
   source: SourceRef
 }
 
+/** Small photo from a news report; `file` sits in public/news/. Mirrors backend NewsImage. */
+export interface NewsImage {
+  file: string
+  alt: string
+}
+
 export interface SlopeEcho {
   region: string
   country: string
-  event: { date: string; label: string; source: SourceRef }
-  facts: { text: string; source?: SourceRef }[]
+  event: { date: string; label: string; source: SourceRef; image?: NewsImage }
+  facts: { text: string; source?: SourceRef; image?: NewsImage }[]
   story: Record<StoryKey, DualText>
   layers: ExtLayer[]
   overlays: ExtOverlay[]

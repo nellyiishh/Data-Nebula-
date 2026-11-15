@@ -10,6 +10,7 @@ import { useRain } from '../features/sites/api'
 import type { SiteDetail, SiteSummary } from '../features/sites/model/types'
 import { DataLimits } from '../features/story/components/DataLimits'
 import { Screen, SourceLink } from '../features/story/components/Screen'
+import { NewsThumb } from '../features/story/components/NewsThumb'
 import { PROJECT } from '../features/story/content'
 import { RainTimeline } from '../features/timeline/components/RainTimeline'
 import { rainBefore } from '../features/timeline/lib/rain'
@@ -101,6 +102,7 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
         {se && (
           <ul className="facts">
             <li className="panel event-card">
+              <NewsThumb image={se.event.image} />
               <strong>{se.event.date}</strong>
               <span>{se.event.label}</span>
               <span className="muted">
@@ -110,6 +112,7 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
             </li>
             {se.facts.map((f) => (
               <li key={f.text} className="panel">
+                <NewsThumb image={f.image} />
                 <span>{f.text}</span>
                 <SourceLink source={f.source} />
               </li>
@@ -200,12 +203,6 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
               </button>
             </li>
           ))}
-          {sites.length < 2 && (
-            <li className="panel site-card site-card--next">
-              <strong>Second region</strong>
-              <span className="muted">Being checked against NISAR coverage. Same screens, different slope.</span>
-            </li>
-          )}
         </ul>
       </Screen>
 

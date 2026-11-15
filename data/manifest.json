@@ -36,31 +36,35 @@
           "date": "2026-10-10",
           "label": "Landslide, about 42.8 thousand m³ of ground on the move",
           "source": {
-            "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
-            "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi"
-          }
+            "name": "Ministry of Emergency Situations via Open.kg, 11 Oct 2026",
+            "url": "https://open.kg/news/incidents/128251-v-oshskoj-oblasti-aktivizirovalsja-opolzen-obemom-428-tys-kubometrov.html"
+          },
+          "image": {"file": "aerial-slide.jpg", "alt": "Aerial view of the slide above Toguz-Bulak village, with the road and houses at its foot"}
         },
         "facts": [
           {
             "text": "About 42,800 m³ of ground started moving on 10 October 2026 around 14:00, at roughly 1.1 m per hour, with a 220 m crack.",
             "source": {
-              "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
-              "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi"
-            }
+              "name": "Ministry of Emergency Situations via FOR.kg (Sputnik Kyrgyzstan), 11 Oct 2026",
+              "url": "https://www.for.kg/news-930407-ru.html"
+            },
+            "image": {"file": "tension-crack.jpg", "alt": "Wide tension crack running across the slope above the village"}
           },
           {
             "text": "11 people from two families were evacuated; two houses lie in the slide's possible path.",
             "source": {
-              "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
-              "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi"
-            }
+              "name": "Ministry of Emergency Situations via Novosti.kg, 12 Oct 2026",
+              "url": "https://novosti.kg/2026/10/v-kara-kuldzhe-zafiksirovali-dvizhenie-opolznya/"
+            },
+            "image": {"file": "village-below-slope.jpg", "alt": "Exposed slide scarp with Toguz-Bulak village in the valley beyond"}
           },
           {
             "text": "The Ylai-Talaa–Gülchö road (detour at km 22–23), a substation and power lines are at risk.",
             "source": {
-              "name": "Ministry of Emergency Situations via Economist.kg, 12 Oct 2026",
-              "url": "https://economist.kg/society/2026/10/12/opolzen-toguz-bulak-42-8-tysyachi"
-            }
+              "name": "Ministry of Emergency Situations via Naq.media, Oct 2026",
+              "url": "https://naq.media/ru/news/v-kara-kuldzhinskom-raione-oshskoi-oblasti-prodolzhaetsya-dvizhenie-opolznya"
+            },
+            "image": {"file": "scarp-edge.jpg", "alt": "Two people at the edge of the collapsed ground on the slope"}
           }
         ],
         "story": {

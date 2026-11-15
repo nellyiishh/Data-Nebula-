@@ -293,6 +293,16 @@
             "title": "Date",
             "type": "string"
           },
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "label": {
             "title": "Label",
             "type": "string"
@@ -503,6 +513,16 @@
       },
       "Fact": {
         "properties": {
+          "image": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NewsImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "source": {
             "anyOf": [
               {
@@ -560,6 +580,26 @@
           "labels"
         ],
         "title": "Legend",
+        "type": "object"
+      },
+      "NewsImage": {
+        "description": "Small photo from a news report; `file` lives in web/public/news/ (site-independent).",
+        "properties": {
+          "alt": {
+            "title": "Alt",
+            "type": "string"
+          },
+          "file": {
+            "pattern": "^[A-Za-z0-9_-]+\\.(jpg|png)$",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "alt"
+        ],
+        "title": "NewsImage",
         "type": "object"
       },
       "PointOfInterest": {

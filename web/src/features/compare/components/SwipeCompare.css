@@ -11,8 +11,10 @@
   position: absolute;
   top: var(--space-3);
   right: 56px;
+  /* The second image (Date B / After / Radar) is gold; the first keeps the default teal UI. */
   background: color-mix(in srgb, var(--bg) 80%, transparent);
-  border: 1px solid var(--border);
+  border: 1px solid var(--accent-2);
+  color: var(--accent-2);
   border-radius: var(--radius);
   padding: var(--space-1) var(--space-2);
   font-family: var(--font-mono);

@@ -3,6 +3,7 @@ import { paths } from '../core/api/client'
 import { SarMap } from '../core/map/SarMap'
 import { HeroBackdrop } from '../core/ui/HeroBackdrop'
 import { LazyMount } from '../core/ui/LazyMount'
+import { PdfIcon } from '../core/ui/PdfIcon'
 import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
 import { ReportBody } from '../features/report/components/ReportBody'
@@ -179,7 +180,7 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
               <h3>Registered events</h3>
               <EventCatalog catalog={se?.catalog} />
             </section>
-            <a className="btn btn--primary" href="#report">
+            <a className="btn btn--report" href="#report">
               Generate investigation report
             </a>
           </div>
@@ -215,7 +216,8 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
           <ReportBody site={site} rain={rain} generated={generated} compact />
         </div>
         <p>
-          <a className="btn btn--primary" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+          <a className="btn btn--report" href={`?site=${site.id}&view=brief`} target="_blank" rel="noreferrer">
+            <PdfIcon />
             Generate full report (print / PDF)
           </a>
         </p>

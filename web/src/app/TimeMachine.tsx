@@ -27,7 +27,7 @@ export function TimeMachine({ site, research, params, setParams }: Props) {
           <ExplorerMap site={site} s={s} />
           {/* Phones: the map fills the screen, so Play lives on it. Desktop uses the panel below. */}
           <div className="explorer__player">
-            <FrameSlider labels={s.layer.frames.map((f) => f.label)} index={s.fIdx} onChange={s.actions.setFrame} />
+            <FrameSlider labels={s.layer.frames.map((f) => f.label)} index={s.fIdx} onChange={s.actions.setFrame} playBlockedReason={s.playBlockedReason} />
           </div>
         </LazyMount>
         <aside className="explorer__side">

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { notify } from '../../../core/ui/notify'
 import './FrameSlider.css'
 
 // Owner: Frontend 1 (map lead). Steps through a layer's frames (dates or date pairs); Play animates.
@@ -8,10 +9,15 @@ interface Props {
   index: number
   onChange: (index: number) => void
   frameMs?: number
+  /** When set, Play is refused and this is shown as a snackbar (e.g. compare mode). */
+  playBlockedReason?: string
 }
 
-export function FrameSlider({ labels, index, onChange, frameMs = 1000 }: Props) {
+export function FrameSlider({ labels, index, onChange, frameMs = 1000, playBlockedReason }: Props) {
   const [playing, setPlaying] = useState(false)
+
+  // Compare mode switched on while playing: stop, the frames would change out of sight.
+  if (playBlockedReason && playing) setPlaying(false)
 
   useEffect(() => {
     if (!playing || labels.length < 2) return
@@ -28,7 +34,10 @@ export function FrameSlider({ labels, index, onChange, frameMs = 1000 }: Props) 
         className="btn"
         aria-pressed={playing}
         aria-label={playing ? 'Pause animation' : 'Play animation'}
-        onClick={() => setPlaying((p) => !p)}
+        onClick={() => {
+          if (playBlockedReason) return notify(playBlockedReason, 'info')
+          setPlaying((p) => !p)
+        }}
         disabled={labels.length < 2}
       >
         {playing ? '❚❚' : '▶'}

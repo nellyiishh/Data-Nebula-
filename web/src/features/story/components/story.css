@@ -81,8 +81,14 @@
   flex-direction: column;
   gap: var(--space-1);
 }
-.data-limits a {
-  color: var(--accent);
+.data-limits a,
+.data-limits a:visited {
+  /* Earth Gold, not the browser's blue (visited) or the teal used for navigation. */
+  color: var(--accent-2);
+  text-underline-offset: 2px;
+}
+.data-limits a:hover {
+  color: color-mix(in srgb, var(--accent-2) 80%, white);
 }
 .data-limits h3 + * {
   margin-top: 0;
@@ -191,7 +197,7 @@
   height: 8px;
   margin-top: 6px;
   border-radius: 4px;
-  background: linear-gradient(90deg, var(--hv), var(--accent));
+  background: var(--accent-2); /* Earth Gold, not the teal used for navigation */
 }
 .not-list {
   margin: 0;

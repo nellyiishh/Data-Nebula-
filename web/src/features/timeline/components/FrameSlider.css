@@ -13,3 +13,9 @@
   font-size: 12px;
   white-space: nowrap;
 }
+/* While playing, the button turns gold so a running animation is easy to spot. */
+.frame-slider .btn[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent-2) 22%, var(--surface-2));
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}

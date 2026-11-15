@@ -140,3 +140,21 @@ export interface RainSeries {
 export interface PointExtras {
   series: { from: string; to: string; coherence: number | null; los_cm: number | null }[]
 }
+
+/** GET /sites/{id}/change-stats (ChangeStats in contracts/openapi.json). Percentages are of
+ *  pixels with data on both dates; areas are true ground area. */
+export interface ChangeStats {
+  site_id: string
+  from: string
+  to: string
+  polarization: 'hh' | 'hv'
+  threshold_db: number
+  valid_pct: number
+  darker_pct: number
+  brighter_pct: number
+  changed_pct: number
+  darker_km2: number
+  brighter_km2: number
+  changed_km2: number
+  mean_delta_db: number | null
+}

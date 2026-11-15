@@ -7,7 +7,7 @@ import { PdfIcon } from '../core/ui/PdfIcon'
 import { EventCatalog } from '../features/exposure/components/EventCatalog'
 import { ExposureCard } from '../features/exposure/components/ExposureCard'
 import { ReportBody } from '../features/report/components/ReportBody'
-import { useRain } from '../features/sites/api'
+import { eventPair, useChangeStats, useRain } from '../features/sites/api'
 import type { SiteDetail, SiteSummary } from '../features/sites/model/types'
 import { DataLimits } from '../features/story/components/DataLimits'
 import { Screen, SourceLink } from '../features/story/components/Screen'
@@ -43,6 +43,13 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
   const impactOverlays = se ? toMapOverlays(site, se.overlays.filter((o) => ['exposure', 'aoi', 'scar'].includes(o.id))) : null
   const last = site.dates[site.dates.length - 1]
   const r30 = rain.status === 'ready' && se ? rainBefore(rain.data, se.event.date) : null
+  // "At a glance" facts for the hero: everything comes from the site's own data.
+  const acq = site.acquisitions
+  const bands = [...new Set(acq.map((a) => a.band))].join('/')
+  const pols = [...new Set(acq.flatMap((a) => a.polarizations))].join(' + ')
+  const pairCount = se?.layers.find((l) => l.kind === 'coherence')?.frames.length ?? 0
+  const passesAfter = se ? site.dates.filter((d) => d > se.event.date) : []
+  const eventStats = useChangeStats(site.id, eventPair(site.dates, se?.event.date))
   const pickSite = (id: string) => {
     setParams({ site: id, layer: undefined, f: undefined, pt: undefined, a: undefined, b: undefined })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -85,21 +92,82 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
         </div>
       </section>
 
+      {/* Study at a glance: where, what happened, which NISAR data, how much it can say. */}
+      <section className="glance" aria-label="Study at a glance">
+        <dl className="glance__grid">
+          <div>
+            <dt>Study site</dt>
+            <dd>
+              <strong>{site.name}</strong>
+              <span className="muted">
+                {se ? `${se.region}, ${se.country} · ` : ''}
+                {site.center[1].toFixed(3)}° N, {site.center[0].toFixed(3)}° E
+              </span>
+            </dd>
+          </div>
+          {se && (
+            <div>
+              <dt>Event</dt>
+              <dd>
+                <strong>{se.event.date}</strong>
+                <span className="muted">{se.event.label}</span>
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>NISAR observations</dt>
+            <dd>
+              <strong>
+                {acq.length} passes{pairCount > 0 ? ` · ${pairCount} interferometric pairs` : ''}
+              </strong>
+              <span className="muted">
+                {site.dates[0]} → {last} · {bands}-band · {pols}
+                {site.source === 'demo' ? ' · DEMO data' : ''}
+              </span>
+            </dd>
+          </div>
+          {se && (
+            <div>
+              <dt>How much it can show</dt>
+              <dd>
+                <strong>
+                  {passesAfter.length === 0
+                    ? 'No pass after the event yet'
+                    : `${passesAfter.length} pass${passesAfter.length > 1 ? 'es' : ''} after the event`}
+                </strong>
+                <span className="muted">
+                  {passesAfter[0] ? `first on ${passesAfter[0]} · ` : ''}
+                  {eventStats.status === 'ready'
+                    ? `${eventStats.data.changed_pct.toFixed(1)}% of the area changed > ${eventStats.data.threshold_db} dB across the event · `
+                    : ''}
+                  {se.validation ? 'checked against a mapped scar' : 'slide not outlined yet, so not validated'}
+                  {' · '}
+                  <a href="#data">limits</a>
+                </span>
+              </dd>
+            </div>
+          )}
+        </dl>
+      </section>
+
       {/* 02 · Explore */}
       <Screen id="explore" n={2} title="Explore a place" text={se?.story.place} research={research}>
-        <ul className="site-cards">
-          {sites.map((s) => (
-            <li key={s.id}>
-              <button type="button" className="panel site-card" aria-pressed={s.id === site.id} onClick={() => pickSite(s.id)}>
-                <strong>{s.name}</strong>
-                <span className="muted">
-                  {s.change_type}
-                  {s.source === 'demo' ? ' · demo data' : ''}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        {/* A picker only helps when there is more than one place to pick. */}
+        {sites.length > 1 && (
+          <ul className="site-cards">
+            {sites.map((s) => (
+              <li key={s.id}>
+                <button type="button" className="panel site-card" aria-pressed={s.id === site.id} onClick={() => pickSite(s.id)}>
+                  <strong>{s.name}</strong>
+                  <span className="muted">
+                    {s.change_type}
+                    {s.source === 'demo' ? ' · demo data' : ''}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         {se && (
           <ul className="facts">
             <li className="panel event-card">
@@ -139,20 +207,20 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
           )}
         </div>
         {r30 && (
-          <div className="rain-stats">
+          <dl className="rain-stats" aria-label={`Rain in the ${r30.days} days before the event (IMERG, regional)`}>
             <div className="panel">
-              <strong>{r30.total.toFixed(0)} mm</strong>
-              <span className="muted">in the {r30.days} days before the event</span>
+              <dt className="muted">in the {r30.days} days before the event</dt>
+              <dd>{r30.total.toFixed(0)} mm</dd>
             </div>
             <div className="panel">
-              <strong>{r30.peak.toFixed(0)} mm</strong>
-              <span className="muted">wettest single day</span>
+              <dt className="muted">wettest single day in that window</dt>
+              <dd>{r30.peak.toFixed(0)} mm</dd>
             </div>
             <div className="panel">
-              <strong>{r30.wetDays}</strong>
-              <span className="muted">days with rain</span>
+              <dt className="muted">days with ≥ 1 mm in that window</dt>
+              <dd>{r30.wetDays}</dd>
             </div>
-          </div>
+          </dl>
         )}
         <p className="muted site-page__note">
           Rain coming before a slide does not prove it caused it; it is one of the drivers we compare with the radar.
@@ -193,6 +261,12 @@ export function SitePage({ site, sites, research, params, setParams }: Props) {
           One method, many slopes. Each place uses the same template, so a new region is new data, not new code. We start
           with Kyrgyzstan.
         </p>
+        {sites.length === 1 && (
+          <p className="muted site-page__note">
+            Only this site has been processed so far. Other regions need their own NISAR passes on one track and frame
+            before they can be added.
+          </p>
+        )}
         <ul className="site-cards">
           {sites.map((s) => (
             <li key={s.id}>

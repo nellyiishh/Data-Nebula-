@@ -9,6 +9,19 @@ import './TimeMachine.css'
 // Story screen 03 "Earth Time Machine": every NISAR pass as a frame, with rain and one point's
 // history on the same timeline. Same state and parts as the TRACE workspace.
 
+// What the selected layer cannot tell you on its own. Wording stays within what the data and
+// processing support (see the Data & science screen); keyed by layer kind, not by site.
+const CAVEATS: Record<string, string> = {
+  backscatter:
+    'Brightness is how much of the radar pulse comes back, on one fixed dB stretch for every date. Roughness, slope facing the radar, soil moisture, snow and plants all change it, so a bright or dark patch alone does not identify a landslide.',
+  change:
+    'Coloured where the 3×3-smoothed HH moved past the threshold between the two dates. Wetter soil, snow or calibration can shift a whole scene at once, so compare with other pairs before reading a patch as ground change.',
+  coherence:
+    'How alike two passes are (0–1). Low coherence means the radar echo decorrelated: moving ground, but also snow, wet soil, growing plants or noise. Treat it as a place to look, not as proof that the slope moved.',
+  displacement:
+    'Motion along the radar line of sight (LOS), not vertical or downslope motion: + toward the satellite, − away. Each pair is relative to the site median, and fast motion decorrelates instead of showing as centimetres.',
+}
+
 type Params = Record<string, string | undefined>
 interface Props {
   site: SiteDetail
@@ -39,6 +52,12 @@ export function TimeMachine({ site, research, params, setParams }: Props) {
             <h3>Compare</h3>
             <DatePairControls s={s} />
           </section>
+          {CAVEATS[s.layer.kind] && (
+            <section className="panel tm-caveat" aria-live="polite">
+              <h3>Read with care · {s.layer.title}</h3>
+              <p className="muted">{CAVEATS[s.layer.kind]}</p>
+            </section>
+          )}
         </aside>
       </div>
 

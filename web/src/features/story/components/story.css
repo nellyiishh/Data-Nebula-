@@ -66,7 +66,7 @@
   background: var(--surface-3);
 }
 .event-card {
-  border-left: 3px solid var(--event);
+  border-left: 3px solid var(--accent-2);
 }
 
 .data-limits {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Brand } from '../core/ui/Brand'
 import { PdfIcon } from '../core/ui/PdfIcon'
@@ -46,7 +46,14 @@ export function Workspace({ site, sites, research, params, setParams }: Props) {
   const [generated] = useState(() => new Date().toISOString().slice(0, 10))
   const dateLabel = s.compare ? `${s.layer.frames[s.aIdx].label} ↔ ${s.layer.frames[s.bIdx].label}` : s.frame?.label
 
-  const goStep = (id: StepId) => setParams({ step: id === 'explore' ? undefined : id, cmp: id === 'change' ? '1' : params.cmp })
+  // Step 2 forces compare on. Remember what compare was before, so leaving the step restores it
+  // instead of leaving the divider behind in the other steps.
+  const cmpBeforeChange = useRef<string | undefined>(undefined)
+  const goStep = (id: StepId) => {
+    if (id === 'change' && step !== 'change') cmpBeforeChange.current = params.cmp
+    const cmp = id === 'change' ? '1' : step === 'change' ? cmpBeforeChange.current : params.cmp
+    setParams({ step: id === 'explore' ? undefined : id, cmp })
+  }
 
   return (
     <div className={`ws${leftOpen ? ' ws--left' : ''}${rightOpen ? ' ws--right' : ''}`}>

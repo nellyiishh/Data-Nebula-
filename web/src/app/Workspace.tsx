@@ -293,18 +293,20 @@ function ObservationDetails({ site, s }: { site: SiteDetail; s: ExplorerState })
             : 'No change analysis for this area yet.'}
         </p>
       </section>
-      <section className="ws__card">
-        <h3>Places</h3>
-        <ul className="poi-list">
-          {site.points_of_interest.map((p) => (
-            <li key={p.id}>
-              <button type="button" className="btn" aria-pressed={p.id === s.poi?.id} title={p.note} onClick={() => s.actions.selectPoi(p)}>
-                {p.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {site.points_of_interest.length > 1 && (
+        <section className="ws__card">
+          <h3>Places</h3>
+          <ul className="poi-list">
+            {site.points_of_interest.map((p) => (
+              <li key={p.id}>
+                <button type="button" className="btn" aria-pressed={p.id === s.poi?.id} title={p.note} onClick={() => s.actions.selectPoi(p)}>
+                  {p.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </>
   )
 }

@@ -50,8 +50,10 @@ export function useExplorerState(site: SiteDetail, params: Params, setParams: (p
   const { images, vectors } = toMapOverlays(site, shown)
 
   // Point: a POI id, or "@lon,lat" from a click when the live API can answer any point.
-  const poi = site.points_of_interest.find((p) => p.id === params.pt)
-  const clicked = params.pt?.startsWith('@') ? params.pt.slice(1).split(',').map(Number) : null
+  // Single data source today: preselect the first place so the chart and "Listen to Earth" show at once.
+  const ptId = params.pt ?? site.points_of_interest[0]?.id
+  const poi = site.points_of_interest.find((p) => p.id === ptId)
+  const clicked = ptId?.startsWith('@') ? ptId.slice(1).split(',').map(Number) : null
   const query: PointQuery | null = poi
     ? { lon: poi.lon, lat: poi.lat, poiId: poi.id }
     : clicked

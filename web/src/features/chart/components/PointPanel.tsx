@@ -84,7 +84,7 @@ export function PointPanel(p: Props) {
         <p className={`state-msg${res.error ? ' error' : ''}`}>{res.message}</p>
       )}
 
-      {p.points.length > 0 && (
+      {p.points.length > 1 && (
         <ul className="poi-list" aria-label="Places">
           {p.points.map((pt) => (
             <li key={pt.id}>
